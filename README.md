@@ -52,6 +52,16 @@ Roll back the last migration:
 docker compose run --rm migrate alembic downgrade -1
 ```
 
+## Browsing the database
+
+Prisma Studio runs as a separate `studio` service. It reads the database directly from its URL, so it needs no Prisma schema and works next to SQLAlchemy:
+
+```sh
+docker compose up studio
+```
+
+Then open http://localhost:5555. The service sits behind the `studio` profile, so `docker compose up` never starts it, and its port is bound to localhost only.
+
 ## Local development without Docker
 
 Postgres from compose is exposed on `localhost:5432`, so the API can run on the host against it:
