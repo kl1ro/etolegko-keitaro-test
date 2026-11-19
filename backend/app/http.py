@@ -22,7 +22,7 @@ async def send_request(request: HttpRequest) -> Any:
 
 
 class HttpRequest(TypedDict):
-    method: Literal["GET", "POST", "PUT"]
+    method: Literal["GET", "POST", "PUT", "DELETE"]
     url: str
     headers: dict[str, str]
     body: Any
