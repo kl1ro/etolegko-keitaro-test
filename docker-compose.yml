@@ -38,6 +38,18 @@ services:
       db:
         condition: service_healthy
 
+  studio:
+    build: ./studio
+    env_file: .env
+    profiles: ["studio"]
+
+    ports:
+      - "127.0.0.1:5555:5555"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
   web:
     build: ./frontend
 
