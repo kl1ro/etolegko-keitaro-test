@@ -35,7 +35,14 @@ def get_campaign_creation_deps(
 async def create_campaign(form: CampaignForm, deps: CreateCampaignDeps) -> Campaign:
     draft = get_campaign_draft(form, deps)
     campaign = await deps["keitaro"].create_campaign(draft)
-    await complete_campaign_or_delete(campaign, form, deps)
+
+    try:
+        await create_campaign_streams(campaign, form, deps)
+        await save_campaign(campaign, deps)
+    except Exception:
+        await deps["keitaro"].delete_campaign(campaign.id)
+        raise
+
     return campaign
 
 
@@ -66,24 +73,6 @@ def get_campaign_draft(form: CampaignForm, deps: GetCampaignDraftDeps) -> Campai
 
 class GetCampaignDraftDeps(TypedDict):
     campaign_prefix: str
-
-
-async def complete_campaign_or_delete(
-    campaign: Campaign,
-    form: CampaignForm,
-    deps: CompleteCampaignOrDeleteDeps,
-) -> None:
-    try:
-        await create_campaign_streams(campaign, form, deps)
-        await save_campaign(campaign, deps)
-    except Exception:
-        await deps["keitaro"].delete_campaign(campaign.id)
-        raise
-
-
-class CompleteCampaignOrDeleteDeps(TypedDict):
-    keitaro: Keitaro
-    database: AsyncSession
 
 
 async def create_campaign_streams(
