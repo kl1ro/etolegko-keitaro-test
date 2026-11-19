@@ -5,39 +5,46 @@ from typing import Any, Literal, TypedDict
 import httpx
 
 
-async def post(url: str, body: Any, deps: PostDeps) -> Any:
-    request: HttpRequest = {"method": "POST", "url": url, "body": body}
-    return await send_request(request, deps)
+async def post(url: str, body: Any, headers: dict[str, str]) -> Any:
+    request: HttpRequest = {
+        "method": "POST",
+        "url": url,
+        "headers": headers,
+        "body": body,
+    }
+
+    return await send_request(request)
 
 
-class PostDeps(TypedDict):
-    headers: dict[str, str]
+async def get(url: str, headers: dict[str, str]) -> Any:
+    request: HttpRequest = {
+        "method": "GET",
+        "url": url,
+        "headers": headers,
+        "body": None,
+    }
+
+    return await send_request(request)
 
 
-async def get(url: str, deps: GetDeps) -> Any:
-    request: HttpRequest = {"method": "GET", "url": url, "body": None}
-    return await send_request(request, deps)
+async def put(url: str, body: Any, headers: dict[str, str]) -> Any:
+    request: HttpRequest = {
+        "method": "PUT",
+        "url": url,
+        "headers": headers,
+        "body": body,
+    }
+
+    return await send_request(request)
 
 
-class GetDeps(TypedDict):
-    headers: dict[str, str]
-
-
-async def put(url: str, body: Any, deps: PutDeps) -> Any:
-    request: HttpRequest = {"method": "PUT", "url": url, "body": body}
-    return await send_request(request, deps)
-
-
-class PutDeps(TypedDict):
-    headers: dict[str, str]
-
-
-async def send_request(request: HttpRequest, deps: SendRequestDeps) -> Any:
+async def send_request(request: HttpRequest) -> Any:
     try:
-        async with open_client(deps) as client:
+        async with open_client() as client:
             response = await client.request(
                 request["method"],
                 request["url"],
+                headers=request["headers"],
                 json=request["body"],
             )
 
@@ -50,11 +57,8 @@ async def send_request(request: HttpRequest, deps: SendRequestDeps) -> Any:
 class HttpRequest(TypedDict):
     method: Literal["GET", "POST", "PUT"]
     url: str
-    body: Any
-
-
-class SendRequestDeps(TypedDict):
     headers: dict[str, str]
+    body: Any
 
 
 class RequestFailedError(Exception):
@@ -63,9 +67,5 @@ class RequestFailedError(Exception):
         self.request = request
 
 
-def open_client(deps: OpenClientDeps) -> httpx.AsyncClient:
-    return httpx.AsyncClient(headers=deps["headers"])
-
-
-class OpenClientDeps(TypedDict):
-    headers: dict[str, str]
+def open_client() -> httpx.AsyncClient:
+    return httpx.AsyncClient()

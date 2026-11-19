@@ -113,8 +113,7 @@ async def post_to_keitaro(path: str, body: BaseModel, deps: PostToKeitaroDeps) -
     url = get_keitaro_url(path, deps)
     json = convert_model_to_json(body)
     headers = create_keitaro_headers(deps)
-    inner_deps: http.PostDeps = {"headers": headers}
-    return await http.post(url, json, inner_deps)
+    return await http.post(url, json, headers)
 
 
 class PostToKeitaroDeps(TypedDict):
@@ -132,8 +131,7 @@ def convert_json_to_model[Model: BaseModel](
 async def get_from_keitaro(path: str, deps: GetFromKeitaroDeps) -> Any:
     url = get_keitaro_url(path, deps)
     headers = create_keitaro_headers(deps)
-    inner_deps: http.GetDeps = {"headers": headers}
-    return await http.get(url, inner_deps)
+    return await http.get(url, headers)
 
 
 class GetFromKeitaroDeps(TypedDict):
@@ -153,8 +151,7 @@ async def put_to_keitaro(path: str, body: BaseModel, deps: PutToKeitaroDeps) -> 
     url = get_keitaro_url(path, deps)
     json = convert_model_to_json(body)
     headers = create_keitaro_headers(deps)
-    inner_deps: http.PutDeps = {"headers": headers}
-    return await http.put(url, json, inner_deps)
+    return await http.put(url, json, headers)
 
 
 class PutToKeitaroDeps(TypedDict):
