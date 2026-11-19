@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TypedDict
+from typing import Annotated, TypedDict
 
+from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
+from app.database import open_session
+from app.dependencies import get_keitaro
 from app.keitaro import (
     Campaign,
     CampaignDraft,
@@ -15,6 +18,18 @@ from app.keitaro import (
     StreamFilter,
     StreamOffer,
 )
+from app.settings import get_settings
+
+
+def get_campaign_creation_deps(
+    keitaro: Annotated[Keitaro, Depends(get_keitaro)],
+    database: Annotated[AsyncSession, Depends(open_session)],
+) -> CreateCampaignDeps:
+    return {
+        "keitaro": keitaro,
+        "database": database,
+        "campaign_prefix": get_settings().campaign_prefix,
+    }
 
 
 async def create_campaign(form: CampaignForm, deps: CreateCampaignDeps) -> Campaign:
