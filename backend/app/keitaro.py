@@ -12,22 +12,22 @@ class Keitaro:
         self.options = options
 
     async def create_campaign(self, draft: CampaignDraft) -> Campaign:
-        request = self.create_campaign_creation_request(draft)
+        request = self.get_campaign_creation_request(draft)
         created = await http.send_request(request)
         return convert_json_to_model(created, Campaign)
 
     async def load_campaign(self, campaign_id: int) -> Campaign:
-        request = self.create_campaign_load_request(campaign_id)
+        request = self.get_campaign_load_request(campaign_id)
         loaded = await http.send_request(request)
         return convert_json_to_model(loaded, Campaign)
 
     async def load_campaign_streams(self, campaign_id: int) -> list[Stream]:
-        request = self.create_campaign_streams_load_request(campaign_id)
+        request = self.get_campaign_streams_load_request(campaign_id)
         loaded = await http.send_request(request)
         return convert_json_to_models(loaded, Stream)
 
     async def create_stream(self, draft: StreamDraft) -> Stream:
-        request = self.create_stream_creation_request(draft)
+        request = self.get_stream_creation_request(draft)
         created = await http.send_request(request)
         return convert_json_to_model(created, Stream)
 
@@ -36,34 +36,31 @@ class Keitaro:
         stream_id: int,
         offers: list[StreamOffer],
     ) -> Stream:
-        request = self.create_stream_offers_update_request(stream_id, offers)
+        request = self.get_stream_offers_update_request(stream_id, offers)
         updated = await http.send_request(request)
         return convert_json_to_model(updated, Stream)
 
     async def load_offers(self) -> list[Offer]:
-        request = self.create_offers_load_request()
+        request = self.get_offers_load_request()
         loaded = await http.send_request(request)
         return convert_json_to_models(loaded, Offer)
 
     async def load_domains(self) -> list[Domain]:
-        request = self.create_domains_load_request()
+        request = self.get_domains_load_request()
         loaded = await http.send_request(request)
         return convert_json_to_models(loaded, Domain)
 
     async def load_campaign_groups(self) -> list[CampaignGroup]:
-        request = self.create_campaign_groups_load_request()
+        request = self.get_campaign_groups_load_request()
         loaded = await http.send_request(request)
         return convert_json_to_models(loaded, CampaignGroup)
 
     async def load_traffic_sources(self) -> list[TrafficSource]:
-        request = self.create_traffic_sources_load_request()
+        request = self.get_traffic_sources_load_request()
         loaded = await http.send_request(request)
         return convert_json_to_models(loaded, TrafficSource)
 
-    def create_campaign_creation_request(
-        self,
-        draft: CampaignDraft,
-    ) -> http.HttpRequest:
+    def get_campaign_creation_request(self, draft: CampaignDraft) -> http.HttpRequest:
         return {
             "method": "POST",
             "url": self.get_url("/campaigns"),
@@ -71,7 +68,7 @@ class Keitaro:
             "body": convert_model_to_json(draft),
         }
 
-    def create_campaign_load_request(self, campaign_id: int) -> http.HttpRequest:
+    def get_campaign_load_request(self, campaign_id: int) -> http.HttpRequest:
         return {
             "method": "GET",
             "url": self.get_url(f"/campaigns/{campaign_id}"),
@@ -79,10 +76,7 @@ class Keitaro:
             "body": None,
         }
 
-    def create_campaign_streams_load_request(
-        self,
-        campaign_id: int,
-    ) -> http.HttpRequest:
+    def get_campaign_streams_load_request(self, campaign_id: int) -> http.HttpRequest:
         return {
             "method": "GET",
             "url": self.get_url(f"/campaigns/{campaign_id}/streams"),
@@ -90,7 +84,7 @@ class Keitaro:
             "body": None,
         }
 
-    def create_stream_creation_request(self, draft: StreamDraft) -> http.HttpRequest:
+    def get_stream_creation_request(self, draft: StreamDraft) -> http.HttpRequest:
         return {
             "method": "POST",
             "url": self.get_url("/streams"),
@@ -98,7 +92,7 @@ class Keitaro:
             "body": convert_model_to_json(draft),
         }
 
-    def create_stream_offers_update_request(
+    def get_stream_offers_update_request(
         self,
         stream_id: int,
         offers: list[StreamOffer],
@@ -112,7 +106,7 @@ class Keitaro:
             "body": convert_model_to_json(update),
         }
 
-    def create_offers_load_request(self) -> http.HttpRequest:
+    def get_offers_load_request(self) -> http.HttpRequest:
         return {
             "method": "GET",
             "url": self.get_url("/offers"),
@@ -120,7 +114,7 @@ class Keitaro:
             "body": None,
         }
 
-    def create_domains_load_request(self) -> http.HttpRequest:
+    def get_domains_load_request(self) -> http.HttpRequest:
         return {
             "method": "GET",
             "url": self.get_url("/domains"),
@@ -128,7 +122,7 @@ class Keitaro:
             "body": None,
         }
 
-    def create_campaign_groups_load_request(self) -> http.HttpRequest:
+    def get_campaign_groups_load_request(self) -> http.HttpRequest:
         return {
             "method": "GET",
             "url": self.get_url("/groups?type=campaigns"),
@@ -136,7 +130,7 @@ class Keitaro:
             "body": None,
         }
 
-    def create_traffic_sources_load_request(self) -> http.HttpRequest:
+    def get_traffic_sources_load_request(self) -> http.HttpRequest:
         return {
             "method": "GET",
             "url": self.get_url("/traffic_sources"),
