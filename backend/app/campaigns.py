@@ -33,14 +33,16 @@ def get_campaign_creation_deps(
 
 
 async def create_campaign(form: CampaignForm, deps: CreateCampaignDeps) -> Campaign:
-    draft = get_campaign_draft(form, deps)
-    campaign = await deps["keitaro"].create_campaign(draft)
+    inner_deps: CreateCampaignInnerDeps = {**deps, "form": form}
+
+    draft = get_campaign_draft(form, inner_deps)
+    campaign = await inner_deps["keitaro"].create_campaign(draft)
 
     try:
-        await create_campaign_streams(campaign, form, deps)
-        await save_campaign(campaign, deps)
+        await create_campaign_streams(campaign, inner_deps)
+        await save_campaign(campaign, inner_deps)
     except Exception:
-        await deps["keitaro"].delete_campaign(campaign.id)
+        await inner_deps["keitaro"].delete_campaign(campaign.id)
         raise
 
     return campaign
@@ -61,6 +63,13 @@ class CreateCampaignDeps(TypedDict):
     campaign_prefix: str
 
 
+class CreateCampaignInnerDeps(TypedDict):
+    keitaro: Keitaro
+    database: AsyncSession
+    campaign_prefix: str
+    form: CampaignForm
+
+
 def get_campaign_draft(form: CampaignForm, deps: GetCampaignDraftDeps) -> CampaignDraft:
     return CampaignDraft(
         name=f"{deps['campaign_prefix']}{form.name}",
@@ -77,11 +86,10 @@ class GetCampaignDraftDeps(TypedDict):
 
 async def create_campaign_streams(
     campaign: Campaign,
-    form: CampaignForm,
     deps: CreateCampaignStreamsDeps,
 ) -> None:
-    country_stream = get_country_stream_draft(campaign, form.country)
-    offer_stream = get_offer_stream_draft(campaign, form.offer_id)
+    country_stream = get_country_stream_draft(campaign, deps["form"].country)
+    offer_stream = get_offer_stream_draft(campaign, deps["form"].offer_id)
 
     await asyncio.gather(
         deps["keitaro"].create_stream(country_stream),
@@ -91,6 +99,7 @@ async def create_campaign_streams(
 
 class CreateCampaignStreamsDeps(TypedDict):
     keitaro: Keitaro
+    form: CampaignForm
 
 
 async def save_campaign(campaign: Campaign, deps: SaveCampaignDeps) -> None:
