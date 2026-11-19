@@ -144,7 +144,7 @@ def get_offer_stream_draft(campaign: Campaign, offer_id: int) -> StreamDraft:
         name="Offer",
         position=2,
         action_schema="landings",
-        action_type="",
+        action_type="http",
         offers=[StreamOffer(offer_id=offer_id, share=100)],
     )
 
