@@ -14,12 +14,10 @@ services:
       interval: 2s
       retries: 15
 
-  api:
+  migrate:
     build: ./backend
     env_file: .env
-
-    ports:
-      - "8000:8000"
+    command: ["alembic", "upgrade", "head"]
 
     volumes:
       - ./backend/alembic/versions:/app/alembic/versions
@@ -27,6 +25,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  api:
+    build: ./backend
+    env_file: .env
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
   web:
     build: ./frontend

@@ -23,26 +23,26 @@ A test assignment: a campaign creator and an offer editor on top of the Keitaro 
    - web app: http://localhost:3000
    - API docs: http://localhost:8000/docs
 
-The API applies pending migrations on every start (`alembic upgrade head`), so a fresh database is ready right away.
+Before the API starts, the one-shot `migrate` service applies pending migrations (`alembic upgrade head`) and exits; the API waits for it to finish successfully. Migrations therefore run once per start, not once per API container.
 
 ## Migrations
 
 Apply migrations by hand:
 
 ```sh
-docker compose run --rm api alembic upgrade head
+docker compose run --rm migrate alembic upgrade head
 ```
 
 Create a migration after changing models in `backend/app/models.py` (the database must be running; `alembic/versions` is mounted, so the file lands in the repository):
 
 ```sh
-docker compose run --rm api alembic revision --autogenerate -m "describe the change"
+docker compose run --rm migrate alembic revision --autogenerate -m "describe the change"
 ```
 
 Roll back the last migration:
 
 ```sh
-docker compose run --rm api alembic downgrade -1
+docker compose run --rm migrate alembic downgrade -1
 ```
 
 ## Local development without Docker
