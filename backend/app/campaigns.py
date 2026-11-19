@@ -35,7 +35,7 @@ class CampaignForm(BaseModel):
 
 class CreateCampaignDeps(TypedDict):
     keitaro: Keitaro
-    session: AsyncSession
+    database: AsyncSession
     campaign_prefix: str
 
 
@@ -69,12 +69,12 @@ class CreateCampaignStreamsDeps(TypedDict):
 
 
 async def save_campaign(campaign: Campaign, deps: SaveCampaignDeps) -> None:
-    deps["session"].add(models.Campaign(id=campaign.id))
-    await deps["session"].commit()
+    deps["database"].add(models.Campaign(id=campaign.id))
+    await deps["database"].commit()
 
 
 class SaveCampaignDeps(TypedDict):
-    session: AsyncSession
+    database: AsyncSession
 
 
 def get_country_stream_draft(campaign: Campaign, country: str) -> StreamDraft:

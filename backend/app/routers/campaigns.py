@@ -16,11 +16,11 @@ router = APIRouter()
 async def handle_campaign_creation(
     form: campaigns.CampaignForm,
     keitaro: Annotated[Keitaro, Depends(get_keitaro)],
-    session: Annotated[AsyncSession, Depends(open_session)],
+    database: Annotated[AsyncSession, Depends(open_session)],
 ) -> Campaign:
     deps: campaigns.CreateCampaignDeps = {
         "keitaro": keitaro,
-        "session": session,
+        "database": database,
         "campaign_prefix": get_settings().campaign_prefix,
     }
 
