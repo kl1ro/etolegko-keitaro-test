@@ -192,6 +192,7 @@ def convert_model_to_json(model: BaseModel) -> Any:
 
 
 class CampaignDraft(BaseModel):
+    alias: str
     name: str
     type: Literal["position", "weight"]
     group_id: Annotated[int, PlainSerializer(str)]
