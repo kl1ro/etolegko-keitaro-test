@@ -9,7 +9,7 @@ from app import http
 
 async def create_campaign(draft: CampaignDraft, deps: CreateCampaignDeps) -> Campaign:
     url = f"{deps['keitaro_url']}/campaigns"
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.post(url, draft, Campaign, request_deps)
 
 
@@ -20,7 +20,7 @@ class CreateCampaignDeps(TypedDict):
 
 async def load_campaign(campaign_id: int, deps: LoadCampaignDeps) -> Campaign:
     url = f"{deps['keitaro_url']}/campaigns/{campaign_id}"
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.get(url, Campaign, request_deps)
 
 
@@ -34,7 +34,7 @@ async def load_campaign_streams(
     deps: LoadCampaignStreamsDeps,
 ) -> list[Stream]:
     url = f"{deps['keitaro_url']}/campaigns/{campaign_id}/streams"
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.get_list(url, Stream, request_deps)
 
 
@@ -45,7 +45,7 @@ class LoadCampaignStreamsDeps(TypedDict):
 
 async def create_stream(draft: StreamDraft, deps: CreateStreamDeps) -> Stream:
     url = f"{deps['keitaro_url']}/streams"
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.post(url, draft, Stream, request_deps)
 
 
@@ -61,7 +61,7 @@ async def update_stream_offers(
 ) -> Stream:
     url = f"{deps['keitaro_url']}/streams/{stream_id}"
     update = StreamOffersUpdate(offers=offers)
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.put(url, update, Stream, request_deps)
 
 
@@ -76,7 +76,7 @@ class StreamOffersUpdate(BaseModel):
 
 async def load_offers(deps: LoadOffersDeps) -> list[Offer]:
     url = f"{deps['keitaro_url']}/offers"
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.get_list(url, Offer, request_deps)
 
 
@@ -87,7 +87,7 @@ class LoadOffersDeps(TypedDict):
 
 async def load_domains(deps: LoadDomainsDeps) -> list[Domain]:
     url = f"{deps['keitaro_url']}/domains"
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.get_list(url, Domain, request_deps)
 
 
@@ -98,7 +98,7 @@ class LoadDomainsDeps(TypedDict):
 
 async def load_campaign_groups(deps: LoadCampaignGroupsDeps) -> list[CampaignGroup]:
     url = f"{deps['keitaro_url']}/groups?type=campaigns"
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.get_list(url, CampaignGroup, request_deps)
 
 
@@ -109,7 +109,7 @@ class LoadCampaignGroupsDeps(TypedDict):
 
 async def load_traffic_sources(deps: LoadTrafficSourcesDeps) -> list[TrafficSource]:
     url = f"{deps['keitaro_url']}/traffic_sources"
-    request_deps = _create_request_deps(deps)
+    request_deps = create_request_deps(deps)
     return await http.get_list(url, TrafficSource, request_deps)
 
 
@@ -118,7 +118,7 @@ class LoadTrafficSourcesDeps(TypedDict):
     keitaro_api_key: str
 
 
-def _create_request_deps(deps: CreateRequestDepsDeps) -> RequestDeps:
+def create_request_deps(deps: CreateRequestDepsDeps) -> RequestDeps:
     return {"headers": {"Api-Key": deps["keitaro_api_key"]}}
 
 

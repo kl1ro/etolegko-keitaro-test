@@ -12,7 +12,7 @@ async def post[Result: BaseModel](
     result_type: type[Result],
     deps: PostDeps,
 ) -> Result:
-    result = await _send("POST", url, deps, json=body.model_dump(by_alias=True))
+    result = await send_request("POST", url, deps, json=body.model_dump(by_alias=True))
     return result_type.model_validate(result)
 
 
@@ -25,7 +25,7 @@ async def get[Result: BaseModel](
     result_type: type[Result],
     deps: GetDeps,
 ) -> Result:
-    result = await _send("GET", url, deps)
+    result = await send_request("GET", url, deps)
     return result_type.model_validate(result)
 
 
@@ -38,7 +38,7 @@ async def get_list[Item: BaseModel](
     item_type: type[Item],
     deps: GetListDeps,
 ) -> list[Item]:
-    items = await _send("GET", url, deps)
+    items = await send_request("GET", url, deps)
     validated_items = [item_type.model_validate(item) for item in items]
     return validated_items
 
@@ -53,7 +53,7 @@ async def put[Result: BaseModel](
     result_type: type[Result],
     deps: PutDeps,
 ) -> Result:
-    result = await _send("PUT", url, deps, json=body.model_dump(by_alias=True))
+    result = await send_request("PUT", url, deps, json=body.model_dump(by_alias=True))
     return result_type.model_validate(result)
 
 
@@ -61,9 +61,15 @@ class PutDeps(TypedDict):
     headers: dict[str, str]
 
 
-async def _send(method: str, url: str, deps: SendDeps, *, json: Any = None) -> Any:
+async def send_request(
+    method: str,
+    url: str,
+    deps: SendRequestDeps,
+    *,
+    json: Any = None,
+) -> Any:
     try:
-        async with _open_client(deps) as client:
+        async with open_client(deps) as client:
             response = await client.request(method, url, json=json)
             response.raise_for_status()
             return response.json()
@@ -71,7 +77,7 @@ async def _send(method: str, url: str, deps: SendDeps, *, json: Any = None) -> A
         raise RequestFailedError(method=method, url=url) from error
 
 
-class SendDeps(TypedDict):
+class SendRequestDeps(TypedDict):
     headers: dict[str, str]
 
 
@@ -82,7 +88,7 @@ class RequestFailedError(Exception):
         self.url = url
 
 
-def _open_client(deps: OpenClientDeps) -> httpx.AsyncClient:
+def open_client(deps: OpenClientDeps) -> httpx.AsyncClient:
     return httpx.AsyncClient(headers=deps["headers"])
 
 
