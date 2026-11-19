@@ -8,7 +8,14 @@ from app import http
 
 
 async def create_campaign(draft: CampaignDraft, deps: CreateCampaignDeps) -> Campaign:
-    created = await post_to_keitaro("/campaigns", draft, deps)
+    request: http.HttpRequest = {
+        "method": "POST",
+        "url": get_keitaro_url("/campaigns", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": convert_model_to_json(draft),
+    }
+
+    created = await http.send_request(request)
     return convert_json_to_model(created, Campaign)
 
 
@@ -18,7 +25,14 @@ class CreateCampaignDeps(TypedDict):
 
 
 async def load_campaign(campaign_id: int, deps: LoadCampaignDeps) -> Campaign:
-    loaded = await get_from_keitaro(f"/campaigns/{campaign_id}", deps)
+    request: http.HttpRequest = {
+        "method": "GET",
+        "url": get_keitaro_url(f"/campaigns/{campaign_id}", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": None,
+    }
+
+    loaded = await http.send_request(request)
     return convert_json_to_model(loaded, Campaign)
 
 
@@ -31,7 +45,14 @@ async def load_campaign_streams(
     campaign_id: int,
     deps: LoadCampaignStreamsDeps,
 ) -> list[Stream]:
-    loaded = await get_from_keitaro(f"/campaigns/{campaign_id}/streams", deps)
+    request: http.HttpRequest = {
+        "method": "GET",
+        "url": get_keitaro_url(f"/campaigns/{campaign_id}/streams", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": None,
+    }
+
+    loaded = await http.send_request(request)
     return convert_json_to_models(loaded, Stream)
 
 
@@ -41,7 +62,14 @@ class LoadCampaignStreamsDeps(TypedDict):
 
 
 async def create_stream(draft: StreamDraft, deps: CreateStreamDeps) -> Stream:
-    created = await post_to_keitaro("/streams", draft, deps)
+    request: http.HttpRequest = {
+        "method": "POST",
+        "url": get_keitaro_url("/streams", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": convert_model_to_json(draft),
+    }
+
+    created = await http.send_request(request)
     return convert_json_to_model(created, Stream)
 
 
@@ -56,7 +84,15 @@ async def update_stream_offers(
     deps: UpdateStreamOffersDeps,
 ) -> Stream:
     update = StreamOffersUpdate(offers=offers)
-    updated = await put_to_keitaro(f"/streams/{stream_id}", update, deps)
+
+    request: http.HttpRequest = {
+        "method": "PUT",
+        "url": get_keitaro_url(f"/streams/{stream_id}", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": convert_model_to_json(update),
+    }
+
+    updated = await http.send_request(request)
     return convert_json_to_model(updated, Stream)
 
 
@@ -70,7 +106,14 @@ class StreamOffersUpdate(BaseModel):
 
 
 async def load_offers(deps: LoadOffersDeps) -> list[Offer]:
-    loaded = await get_from_keitaro("/offers", deps)
+    request: http.HttpRequest = {
+        "method": "GET",
+        "url": get_keitaro_url("/offers", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": None,
+    }
+
+    loaded = await http.send_request(request)
     return convert_json_to_models(loaded, Offer)
 
 
@@ -80,7 +123,14 @@ class LoadOffersDeps(TypedDict):
 
 
 async def load_domains(deps: LoadDomainsDeps) -> list[Domain]:
-    loaded = await get_from_keitaro("/domains", deps)
+    request: http.HttpRequest = {
+        "method": "GET",
+        "url": get_keitaro_url("/domains", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": None,
+    }
+
+    loaded = await http.send_request(request)
     return convert_json_to_models(loaded, Domain)
 
 
@@ -90,7 +140,14 @@ class LoadDomainsDeps(TypedDict):
 
 
 async def load_campaign_groups(deps: LoadCampaignGroupsDeps) -> list[CampaignGroup]:
-    loaded = await get_from_keitaro("/groups?type=campaigns", deps)
+    request: http.HttpRequest = {
+        "method": "GET",
+        "url": get_keitaro_url("/groups?type=campaigns", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": None,
+    }
+
+    loaded = await http.send_request(request)
     return convert_json_to_models(loaded, CampaignGroup)
 
 
@@ -100,61 +157,18 @@ class LoadCampaignGroupsDeps(TypedDict):
 
 
 async def load_traffic_sources(deps: LoadTrafficSourcesDeps) -> list[TrafficSource]:
-    loaded = await get_from_keitaro("/traffic_sources", deps)
+    request: http.HttpRequest = {
+        "method": "GET",
+        "url": get_keitaro_url("/traffic_sources", deps),
+        "headers": create_keitaro_headers(deps),
+        "body": None,
+    }
+
+    loaded = await http.send_request(request)
     return convert_json_to_models(loaded, TrafficSource)
 
 
 class LoadTrafficSourcesDeps(TypedDict):
-    keitaro_url: str
-    keitaro_api_key: str
-
-
-async def post_to_keitaro(path: str, body: BaseModel, deps: PostToKeitaroDeps) -> Any:
-    url = get_keitaro_url(path, deps)
-    json = convert_model_to_json(body)
-    headers = create_keitaro_headers(deps)
-    return await http.post(url, json, headers)
-
-
-class PostToKeitaroDeps(TypedDict):
-    keitaro_url: str
-    keitaro_api_key: str
-
-
-def convert_json_to_model[Model: BaseModel](
-    json: Any,
-    model_type: type[Model],
-) -> Model:
-    return model_type.model_validate(json)
-
-
-async def get_from_keitaro(path: str, deps: GetFromKeitaroDeps) -> Any:
-    url = get_keitaro_url(path, deps)
-    headers = create_keitaro_headers(deps)
-    return await http.get(url, headers)
-
-
-class GetFromKeitaroDeps(TypedDict):
-    keitaro_url: str
-    keitaro_api_key: str
-
-
-def convert_json_to_models[Model: BaseModel](
-    json: Any,
-    model_type: type[Model],
-) -> list[Model]:
-    models = [convert_json_to_model(item, model_type) for item in json]
-    return models
-
-
-async def put_to_keitaro(path: str, body: BaseModel, deps: PutToKeitaroDeps) -> Any:
-    url = get_keitaro_url(path, deps)
-    json = convert_model_to_json(body)
-    headers = create_keitaro_headers(deps)
-    return await http.put(url, json, headers)
-
-
-class PutToKeitaroDeps(TypedDict):
     keitaro_url: str
     keitaro_api_key: str
 
@@ -167,16 +181,31 @@ class GetKeitaroUrlDeps(TypedDict):
     keitaro_url: str
 
 
-def convert_model_to_json(model: BaseModel) -> Any:
-    return model.model_dump(by_alias=True)
-
-
 def create_keitaro_headers(deps: CreateKeitaroHeadersDeps) -> dict[str, str]:
     return {"Api-Key": deps["keitaro_api_key"]}
 
 
 class CreateKeitaroHeadersDeps(TypedDict):
     keitaro_api_key: str
+
+
+def convert_model_to_json(model: BaseModel) -> Any:
+    return model.model_dump(by_alias=True)
+
+
+def convert_json_to_model[Model: BaseModel](
+    json: Any,
+    model_type: type[Model],
+) -> Model:
+    return model_type.model_validate(json)
+
+
+def convert_json_to_models[Model: BaseModel](
+    json: Any,
+    model_type: type[Model],
+) -> list[Model]:
+    models = [convert_json_to_model(item, model_type) for item in json]
+    return models
 
 
 class CampaignDraft(BaseModel):
