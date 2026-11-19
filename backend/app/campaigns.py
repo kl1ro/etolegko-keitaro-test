@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import TypedDict
 
 from pydantic import BaseModel
@@ -60,8 +61,11 @@ async def create_campaign_streams(
 ) -> None:
     country_stream = get_country_stream_draft(campaign, form.country)
     offer_stream = get_offer_stream_draft(campaign, form.offer_id)
-    await deps["keitaro"].create_stream(country_stream)
-    await deps["keitaro"].create_stream(offer_stream)
+
+    await asyncio.gather(
+        deps["keitaro"].create_stream(country_stream),
+        deps["keitaro"].create_stream(offer_stream),
+    )
 
 
 class CreateCampaignStreamsDeps(TypedDict):
