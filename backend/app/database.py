@@ -7,7 +7,9 @@ from app.settings import get_settings
 
 
 async def open_session() -> AsyncIterator[AsyncSession]:
-    async with get_session_factory()() as session:
+    session_factory = get_session_factory()
+
+    async with session_factory() as session:
         yield session
 
 
