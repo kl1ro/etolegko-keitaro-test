@@ -19,6 +19,9 @@ dev = [
     "ruff>=0.17.5",
 ]
 
+[tool.ruff]
+extend-exclude = ["alembic/versions"]
+
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
