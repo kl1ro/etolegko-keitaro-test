@@ -15,7 +15,7 @@ services:
       retries: 15
 
   migrate:
-    build: ./backend
+    image: ghcr.io/kl1ro/etolegko-keitaro-test-backend:${IMAGE_TAG:-latest}
     env_file: .env
     command: ["alembic", "upgrade", "head"]
     profiles: ["migrate"]
@@ -28,7 +28,7 @@ services:
         condition: service_healthy
 
   api:
-    build: ./backend
+    image: ghcr.io/kl1ro/etolegko-keitaro-test-backend:${IMAGE_TAG:-latest}
     env_file: .env
 
     ports:
@@ -39,7 +39,7 @@ services:
         condition: service_healthy
 
   web:
-    build: ./frontend
+    image: ghcr.io/kl1ro/etolegko-keitaro-test-frontend:${IMAGE_TAG:-latest}
 
     ports:
       - "3000:3000"

@@ -14,17 +14,23 @@ A test assignment: a campaign creator and an offer editor on top of the Keitaro 
    cp .env.example .env
    ```
 
-2. Start the database and apply migrations:
+2. Pull the images CI built from `main` (if the packages are private, log in first: `docker login ghcr.io` with a token that has `read:packages`):
+
+   ```sh
+   docker compose pull
+   ```
+
+3. Start the database and apply migrations:
 
    ```sh
    docker compose up -d db
    docker compose run --rm migrate
    ```
 
-3. Start everything:
+4. Start everything:
 
    ```sh
-   docker compose up --build
+   docker compose up
    ```
 
    - web app: http://localhost:3000
