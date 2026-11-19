@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import secrets
 from typing import Annotated, TypedDict
 
 from fastapi import Depends
@@ -73,6 +74,7 @@ class CreateCampaignInnerDeps(TypedDict):
 
 def get_campaign_draft(form: CampaignForm, deps: GetCampaignDraftDeps) -> CampaignDraft:
     return CampaignDraft(
+        alias=generate_campaign_alias(),
         name=f"{deps['campaign_prefix']}{form.name}",
         type="position",
         group_id=form.group_id,
@@ -110,6 +112,13 @@ async def save_campaign(campaign: Campaign, deps: SaveCampaignDeps) -> None:
 
 class SaveCampaignDeps(TypedDict):
     database: AsyncSession
+
+
+def generate_campaign_alias() -> str:
+    return secrets.token_hex(CAMPAIGN_ALIAS_BYTES)
+
+
+CAMPAIGN_ALIAS_BYTES = 4
 
 
 def get_country_stream_draft(campaign: Campaign, country: str) -> StreamDraft:
