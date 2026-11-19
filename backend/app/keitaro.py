@@ -5,6 +5,12 @@ from typing import Annotated, Any, Literal, TypedDict
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer
 
 from app import http
+from app.settings import get_settings
+
+
+def get_keitaro() -> Keitaro:
+    settings = get_settings()
+    return Keitaro({"url": settings.keitaro_url, "api_key": settings.keitaro_api_key})
 
 
 class Keitaro:
@@ -15,6 +21,10 @@ class Keitaro:
         request = self.get_campaign_creation_request(draft)
         created = await http.send_request(request)
         return convert_json_to_model(created, Campaign)
+
+    async def delete_campaign(self, campaign_id: int) -> None:
+        request = self.get_campaign_deletion_request(campaign_id)
+        await http.send_request(request)
 
     async def load_campaign(self, campaign_id: int) -> Campaign:
         request = self.get_campaign_load_request(campaign_id)
@@ -66,6 +76,14 @@ class Keitaro:
             "url": self.get_url("/campaigns"),
             "headers": self.create_headers(),
             "body": convert_model_to_json(draft),
+        }
+
+    def get_campaign_deletion_request(self, campaign_id: int) -> http.HttpRequest:
+        return {
+            "method": "DELETE",
+            "url": self.get_url(f"/campaigns/{campaign_id}"),
+            "headers": self.create_headers(),
+            "body": None,
         }
 
     def get_campaign_load_request(self, campaign_id: int) -> http.HttpRequest:
