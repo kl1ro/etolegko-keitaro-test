@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal, TypedDict
+from typing import Annotated, Any, Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer
 
@@ -8,9 +8,8 @@ from app import http
 
 
 async def create_campaign(draft: CampaignDraft, deps: CreateCampaignDeps) -> Campaign:
-    url = f"{deps['keitaro_url']}/campaigns"
-    request_deps = create_request_deps(deps)
-    return await http.post(url, draft, Campaign, request_deps)
+    created = await post_to_keitaro("/campaigns", draft, deps)
+    return convert_json_to_model(created, Campaign)
 
 
 class CreateCampaignDeps(TypedDict):
@@ -19,9 +18,8 @@ class CreateCampaignDeps(TypedDict):
 
 
 async def load_campaign(campaign_id: int, deps: LoadCampaignDeps) -> Campaign:
-    url = f"{deps['keitaro_url']}/campaigns/{campaign_id}"
-    request_deps = create_request_deps(deps)
-    return await http.get(url, Campaign, request_deps)
+    loaded = await get_from_keitaro(f"/campaigns/{campaign_id}", deps)
+    return convert_json_to_model(loaded, Campaign)
 
 
 class LoadCampaignDeps(TypedDict):
@@ -33,9 +31,8 @@ async def load_campaign_streams(
     campaign_id: int,
     deps: LoadCampaignStreamsDeps,
 ) -> list[Stream]:
-    url = f"{deps['keitaro_url']}/campaigns/{campaign_id}/streams"
-    request_deps = create_request_deps(deps)
-    return await http.get_list(url, Stream, request_deps)
+    loaded = await get_from_keitaro(f"/campaigns/{campaign_id}/streams", deps)
+    return convert_json_to_models(loaded, Stream)
 
 
 class LoadCampaignStreamsDeps(TypedDict):
@@ -44,9 +41,8 @@ class LoadCampaignStreamsDeps(TypedDict):
 
 
 async def create_stream(draft: StreamDraft, deps: CreateStreamDeps) -> Stream:
-    url = f"{deps['keitaro_url']}/streams"
-    request_deps = create_request_deps(deps)
-    return await http.post(url, draft, Stream, request_deps)
+    created = await post_to_keitaro("/streams", draft, deps)
+    return convert_json_to_model(created, Stream)
 
 
 class CreateStreamDeps(TypedDict):
@@ -59,10 +55,9 @@ async def update_stream_offers(
     offers: list[StreamOffer],
     deps: UpdateStreamOffersDeps,
 ) -> Stream:
-    url = f"{deps['keitaro_url']}/streams/{stream_id}"
     update = StreamOffersUpdate(offers=offers)
-    request_deps = create_request_deps(deps)
-    return await http.put(url, update, Stream, request_deps)
+    updated = await put_to_keitaro(f"/streams/{stream_id}", update, deps)
+    return convert_json_to_model(updated, Stream)
 
 
 class UpdateStreamOffersDeps(TypedDict):
@@ -75,9 +70,8 @@ class StreamOffersUpdate(BaseModel):
 
 
 async def load_offers(deps: LoadOffersDeps) -> list[Offer]:
-    url = f"{deps['keitaro_url']}/offers"
-    request_deps = create_request_deps(deps)
-    return await http.get_list(url, Offer, request_deps)
+    loaded = await get_from_keitaro("/offers", deps)
+    return convert_json_to_models(loaded, Offer)
 
 
 class LoadOffersDeps(TypedDict):
@@ -86,9 +80,8 @@ class LoadOffersDeps(TypedDict):
 
 
 async def load_domains(deps: LoadDomainsDeps) -> list[Domain]:
-    url = f"{deps['keitaro_url']}/domains"
-    request_deps = create_request_deps(deps)
-    return await http.get_list(url, Domain, request_deps)
+    loaded = await get_from_keitaro("/domains", deps)
+    return convert_json_to_models(loaded, Domain)
 
 
 class LoadDomainsDeps(TypedDict):
@@ -97,9 +90,8 @@ class LoadDomainsDeps(TypedDict):
 
 
 async def load_campaign_groups(deps: LoadCampaignGroupsDeps) -> list[CampaignGroup]:
-    url = f"{deps['keitaro_url']}/groups?type=campaigns"
-    request_deps = create_request_deps(deps)
-    return await http.get_list(url, CampaignGroup, request_deps)
+    loaded = await get_from_keitaro("/groups?type=campaigns", deps)
+    return convert_json_to_models(loaded, CampaignGroup)
 
 
 class LoadCampaignGroupsDeps(TypedDict):
@@ -108,9 +100,8 @@ class LoadCampaignGroupsDeps(TypedDict):
 
 
 async def load_traffic_sources(deps: LoadTrafficSourcesDeps) -> list[TrafficSource]:
-    url = f"{deps['keitaro_url']}/traffic_sources"
-    request_deps = create_request_deps(deps)
-    return await http.get_list(url, TrafficSource, request_deps)
+    loaded = await get_from_keitaro("/traffic_sources", deps)
+    return convert_json_to_models(loaded, TrafficSource)
 
 
 class LoadTrafficSourcesDeps(TypedDict):
@@ -118,16 +109,77 @@ class LoadTrafficSourcesDeps(TypedDict):
     keitaro_api_key: str
 
 
-def create_request_deps(deps: CreateRequestDepsDeps) -> RequestDeps:
-    return {"headers": {"Api-Key": deps["keitaro_api_key"]}}
+async def post_to_keitaro(path: str, body: BaseModel, deps: PostToKeitaroDeps) -> Any:
+    url = get_keitaro_url(path, deps)
+    json = convert_model_to_json(body)
+    headers = create_keitaro_headers(deps)
+    inner_deps: http.PostDeps = {"headers": headers}
+    return await http.post(url, json, inner_deps)
 
 
-class CreateRequestDepsDeps(TypedDict):
+class PostToKeitaroDeps(TypedDict):
+    keitaro_url: str
     keitaro_api_key: str
 
 
-class RequestDeps(TypedDict):
-    headers: dict[str, str]
+def convert_json_to_model[Model: BaseModel](
+    json: Any,
+    model_type: type[Model],
+) -> Model:
+    return model_type.model_validate(json)
+
+
+async def get_from_keitaro(path: str, deps: GetFromKeitaroDeps) -> Any:
+    url = get_keitaro_url(path, deps)
+    headers = create_keitaro_headers(deps)
+    inner_deps: http.GetDeps = {"headers": headers}
+    return await http.get(url, inner_deps)
+
+
+class GetFromKeitaroDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+def convert_json_to_models[Model: BaseModel](
+    json: Any,
+    model_type: type[Model],
+) -> list[Model]:
+    models = [convert_json_to_model(item, model_type) for item in json]
+    return models
+
+
+async def put_to_keitaro(path: str, body: BaseModel, deps: PutToKeitaroDeps) -> Any:
+    url = get_keitaro_url(path, deps)
+    json = convert_model_to_json(body)
+    headers = create_keitaro_headers(deps)
+    inner_deps: http.PutDeps = {"headers": headers}
+    return await http.put(url, json, inner_deps)
+
+
+class PutToKeitaroDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+def get_keitaro_url(path: str, deps: GetKeitaroUrlDeps) -> str:
+    return f"{deps['keitaro_url']}{path}"
+
+
+class GetKeitaroUrlDeps(TypedDict):
+    keitaro_url: str
+
+
+def convert_model_to_json(model: BaseModel) -> Any:
+    return model.model_dump(by_alias=True)
+
+
+def create_keitaro_headers(deps: CreateKeitaroHeadersDeps) -> dict[str, str]:
+    return {"Api-Key": deps["keitaro_api_key"]}
+
+
+class CreateKeitaroHeadersDeps(TypedDict):
+    keitaro_api_key: str
 
 
 class CampaignDraft(BaseModel):

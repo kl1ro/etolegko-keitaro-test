@@ -1,80 +1,56 @@
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import Any, Literal, TypedDict
 
 import httpx
-from pydantic import BaseModel
 
 
-async def post[Result: BaseModel](
-    url: str,
-    body: BaseModel,
-    result_type: type[Result],
-    deps: PostDeps,
-) -> Result:
-    result = await send_request("POST", url, deps, json=body.model_dump(by_alias=True))
-    return result_type.model_validate(result)
+async def post(url: str, body: Any, deps: PostDeps) -> Any:
+    request: HttpRequest = {"method": "POST", "url": url, "body": body}
+    return await send_request(request, deps)
 
 
 class PostDeps(TypedDict):
     headers: dict[str, str]
 
 
-async def get[Result: BaseModel](
-    url: str,
-    result_type: type[Result],
-    deps: GetDeps,
-) -> Result:
-    result = await send_request("GET", url, deps)
-    return result_type.model_validate(result)
+async def get(url: str, deps: GetDeps) -> Any:
+    request: HttpRequest = {"method": "GET", "url": url, "body": None}
+    return await send_request(request, deps)
 
 
 class GetDeps(TypedDict):
     headers: dict[str, str]
 
 
-async def get_list[Item: BaseModel](
-    url: str,
-    item_type: type[Item],
-    deps: GetListDeps,
-) -> list[Item]:
-    items = await send_request("GET", url, deps)
-    validated_items = [item_type.model_validate(item) for item in items]
-    return validated_items
-
-
-class GetListDeps(TypedDict):
-    headers: dict[str, str]
-
-
-async def put[Result: BaseModel](
-    url: str,
-    body: BaseModel,
-    result_type: type[Result],
-    deps: PutDeps,
-) -> Result:
-    result = await send_request("PUT", url, deps, json=body.model_dump(by_alias=True))
-    return result_type.model_validate(result)
+async def put(url: str, body: Any, deps: PutDeps) -> Any:
+    request: HttpRequest = {"method": "PUT", "url": url, "body": body}
+    return await send_request(request, deps)
 
 
 class PutDeps(TypedDict):
     headers: dict[str, str]
 
 
-async def send_request(
-    method: str,
-    url: str,
-    deps: SendRequestDeps,
-    *,
-    json: Any = None,
-) -> Any:
+async def send_request(request: HttpRequest, deps: SendRequestDeps) -> Any:
     try:
         async with open_client(deps) as client:
-            response = await client.request(method, url, json=json)
+            response = await client.request(
+                request["method"],
+                request["url"],
+                json=request["body"],
+            )
+
             response.raise_for_status()
             return response.json()
     except (httpx.HTTPError, ValueError) as error:
-        raise RequestFailedError(method=method, url=url) from error
+        raise RequestFailedError(request) from error
+
+
+class HttpRequest(TypedDict):
+    method: Literal["GET", "POST", "PUT"]
+    url: str
+    body: Any
 
 
 class SendRequestDeps(TypedDict):
@@ -82,10 +58,9 @@ class SendRequestDeps(TypedDict):
 
 
 class RequestFailedError(Exception):
-    def __init__(self, *, method: str, url: str) -> None:
-        super().__init__(f"Request {method} {url} failed")
-        self.method = method
-        self.url = url
+    def __init__(self, request: HttpRequest) -> None:
+        super().__init__(f"Request {request['method']} {request['url']} failed")
+        self.request = request
 
 
 def open_client(deps: OpenClientDeps) -> httpx.AsyncClient:
