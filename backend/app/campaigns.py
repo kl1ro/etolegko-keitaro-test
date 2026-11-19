@@ -21,7 +21,6 @@ async def create_campaign(form: CampaignForm, deps: CreateCampaignDeps) -> Campa
     draft = get_campaign_draft(form, deps)
     campaign = await deps["keitaro"].create_campaign(draft)
     await create_campaign_streams(campaign, form, deps)
-    await save_campaign(campaign, deps)
     return campaign
 
 
@@ -36,8 +35,16 @@ class CampaignForm(BaseModel):
 
 class CreateCampaignDeps(TypedDict):
     keitaro: Keitaro
-    database: AsyncSession
     campaign_prefix: str
+
+
+async def save_campaign(campaign: Campaign, deps: SaveCampaignDeps) -> None:
+    deps["database"].add(models.Campaign(id=campaign.id))
+    await deps["database"].commit()
+
+
+class SaveCampaignDeps(TypedDict):
+    database: AsyncSession
 
 
 def get_campaign_draft(form: CampaignForm, deps: GetCampaignDraftDeps) -> CampaignDraft:
@@ -70,15 +77,6 @@ async def create_campaign_streams(
 
 class CreateCampaignStreamsDeps(TypedDict):
     keitaro: Keitaro
-
-
-async def save_campaign(campaign: Campaign, deps: SaveCampaignDeps) -> None:
-    deps["database"].add(models.Campaign(id=campaign.id))
-    await deps["database"].commit()
-
-
-class SaveCampaignDeps(TypedDict):
-    database: AsyncSession
 
 
 def get_country_stream_draft(campaign: Campaign, country: str) -> StreamDraft:

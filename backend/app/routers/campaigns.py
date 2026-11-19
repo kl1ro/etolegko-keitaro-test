@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, TypedDict
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,10 +18,18 @@ async def handle_campaign_creation(
     keitaro: Annotated[Keitaro, Depends(get_keitaro)],
     database: Annotated[AsyncSession, Depends(open_session)],
 ) -> Campaign:
-    deps: campaigns.CreateCampaignDeps = {
+    deps: CampaignCreationDeps = {
         "keitaro": keitaro,
         "database": database,
         "campaign_prefix": get_settings().campaign_prefix,
     }
 
-    return await campaigns.create_campaign(form, deps)
+    campaign = await campaigns.create_campaign(form, deps)
+    await campaigns.save_campaign(campaign, deps)
+    return campaign
+
+
+class CampaignCreationDeps(TypedDict):
+    keitaro: Keitaro
+    database: AsyncSession
+    campaign_prefix: str
