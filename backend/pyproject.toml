@@ -1,7 +1,7 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Keitaro campaign manager API"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.1",
@@ -18,3 +18,13 @@ dev = [
     "mypy>=2.4.1",
     "ruff>=0.17.5",
 ]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["alembic"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
