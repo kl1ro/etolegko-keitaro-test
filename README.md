@@ -14,7 +14,14 @@ A test assignment: a campaign creator and an offer editor on top of the Keitaro 
    cp .env.example .env
    ```
 
-2. Start everything:
+2. Start the database and apply migrations:
+
+   ```sh
+   docker compose up -d db
+   docker compose run --rm migrate
+   ```
+
+3. Start everything:
 
    ```sh
    docker compose up --build
@@ -23,26 +30,26 @@ A test assignment: a campaign creator and an offer editor on top of the Keitaro 
    - web app: http://localhost:3000
    - API docs: http://localhost:8000/docs
 
-The API applies pending migrations on every start (`alembic upgrade head`), so a fresh database is ready right away.
+`docker compose up` never runs migrations: the `migrate` service sits behind the `migrate` profile, so it starts only when named explicitly. On servers the CI migrate stage runs it before deploying; locally run it by hand after pulling new migrations.
 
 ## Migrations
 
-Apply migrations by hand:
+Apply migrations:
 
 ```sh
-docker compose run --rm api alembic upgrade head
+docker compose run --rm migrate
 ```
 
 Create a migration after changing models in `backend/app/models.py` (the database must be running; `alembic/versions` is mounted, so the file lands in the repository):
 
 ```sh
-docker compose run --rm api alembic revision --autogenerate -m "describe the change"
+docker compose run --rm migrate alembic revision --autogenerate -m "describe the change"
 ```
 
 Roll back the last migration:
 
 ```sh
-docker compose run --rm api alembic downgrade -1
+docker compose run --rm migrate alembic downgrade -1
 ```
 
 ## Local development without Docker
