@@ -39,7 +39,7 @@ services:
         condition: service_healthy
 
   studio:
-    build: ./studio
+    image: ghcr.io/kl1ro/etolegko-keitaro-test-studio:${IMAGE_TAG:-latest}
     env_file: .env
     profiles: ["studio"]
 

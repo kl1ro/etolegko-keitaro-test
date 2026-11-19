@@ -59,7 +59,7 @@ jobs:
 
     strategy:
       matrix:
-        app: [backend, frontend]
+        app: [backend, frontend, studio]
 
     steps:
       - uses: actions/checkout@v7
