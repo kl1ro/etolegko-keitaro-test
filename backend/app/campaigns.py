@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
 from app.database import open_session
-from app.dependencies import get_keitaro
 from app.keitaro import (
     Campaign,
     CampaignDraft,
@@ -17,6 +16,7 @@ from app.keitaro import (
     StreamDraft,
     StreamFilter,
     StreamOffer,
+    get_keitaro,
 )
 from app.settings import get_settings
 
