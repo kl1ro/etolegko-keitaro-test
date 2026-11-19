@@ -5,62 +5,129 @@ from typing import Annotated, Literal, TypedDict
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer
 
 from app import http
-from app.settings import Settings
 
 
-class Keitaro:
-    def __init__(self, settings: Settings) -> None:
-        self._url = settings.keitaro_url
-        self._deps: KeitaroDeps = {"headers": {"Api-Key": settings.keitaro_api_key}}
-
-    async def create_campaign(self, draft: CampaignDraft) -> Campaign:
-        url = f"{self._url}/campaigns"
-        return await http.post(url, draft, Campaign, self._deps)
-
-    async def load_campaign(self, campaign_id: int) -> Campaign:
-        url = f"{self._url}/campaigns/{campaign_id}"
-        return await http.get(url, Campaign, self._deps)
-
-    async def load_campaign_streams(self, campaign_id: int) -> list[Stream]:
-        url = f"{self._url}/campaigns/{campaign_id}/streams"
-        return await http.get_list(url, Stream, self._deps)
-
-    async def create_stream(self, draft: StreamDraft) -> Stream:
-        url = f"{self._url}/streams"
-        return await http.post(url, draft, Stream, self._deps)
-
-    async def update_stream_offers(
-        self,
-        stream_id: int,
-        offers: list[StreamOffer],
-    ) -> Stream:
-        url = f"{self._url}/streams/{stream_id}"
-        update = StreamOffersUpdate(offers=offers)
-        return await http.put(url, update, Stream, self._deps)
-
-    async def load_offers(self) -> list[Offer]:
-        url = f"{self._url}/offers"
-        return await http.get_list(url, Offer, self._deps)
-
-    async def load_domains(self) -> list[Domain]:
-        url = f"{self._url}/domains"
-        return await http.get_list(url, Domain, self._deps)
-
-    async def load_campaign_groups(self) -> list[CampaignGroup]:
-        url = f"{self._url}/groups?type=campaigns"
-        return await http.get_list(url, CampaignGroup, self._deps)
-
-    async def load_traffic_sources(self) -> list[TrafficSource]:
-        url = f"{self._url}/traffic_sources"
-        return await http.get_list(url, TrafficSource, self._deps)
+async def create_campaign(draft: CampaignDraft, deps: CreateCampaignDeps) -> Campaign:
+    url = f"{deps['keitaro_url']}/campaigns"
+    request_deps = _create_request_deps(deps)
+    return await http.post(url, draft, Campaign, request_deps)
 
 
-class KeitaroDeps(TypedDict):
-    headers: dict[str, str]
+class CreateCampaignDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+async def load_campaign(campaign_id: int, deps: LoadCampaignDeps) -> Campaign:
+    url = f"{deps['keitaro_url']}/campaigns/{campaign_id}"
+    request_deps = _create_request_deps(deps)
+    return await http.get(url, Campaign, request_deps)
+
+
+class LoadCampaignDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+async def load_campaign_streams(
+    campaign_id: int,
+    deps: LoadCampaignStreamsDeps,
+) -> list[Stream]:
+    url = f"{deps['keitaro_url']}/campaigns/{campaign_id}/streams"
+    request_deps = _create_request_deps(deps)
+    return await http.get_list(url, Stream, request_deps)
+
+
+class LoadCampaignStreamsDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+async def create_stream(draft: StreamDraft, deps: CreateStreamDeps) -> Stream:
+    url = f"{deps['keitaro_url']}/streams"
+    request_deps = _create_request_deps(deps)
+    return await http.post(url, draft, Stream, request_deps)
+
+
+class CreateStreamDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+async def update_stream_offers(
+    stream_id: int,
+    offers: list[StreamOffer],
+    deps: UpdateStreamOffersDeps,
+) -> Stream:
+    url = f"{deps['keitaro_url']}/streams/{stream_id}"
+    update = StreamOffersUpdate(offers=offers)
+    request_deps = _create_request_deps(deps)
+    return await http.put(url, update, Stream, request_deps)
+
+
+class UpdateStreamOffersDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
 
 
 class StreamOffersUpdate(BaseModel):
     offers: list[StreamOffer]
+
+
+async def load_offers(deps: LoadOffersDeps) -> list[Offer]:
+    url = f"{deps['keitaro_url']}/offers"
+    request_deps = _create_request_deps(deps)
+    return await http.get_list(url, Offer, request_deps)
+
+
+class LoadOffersDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+async def load_domains(deps: LoadDomainsDeps) -> list[Domain]:
+    url = f"{deps['keitaro_url']}/domains"
+    request_deps = _create_request_deps(deps)
+    return await http.get_list(url, Domain, request_deps)
+
+
+class LoadDomainsDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+async def load_campaign_groups(deps: LoadCampaignGroupsDeps) -> list[CampaignGroup]:
+    url = f"{deps['keitaro_url']}/groups?type=campaigns"
+    request_deps = _create_request_deps(deps)
+    return await http.get_list(url, CampaignGroup, request_deps)
+
+
+class LoadCampaignGroupsDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+async def load_traffic_sources(deps: LoadTrafficSourcesDeps) -> list[TrafficSource]:
+    url = f"{deps['keitaro_url']}/traffic_sources"
+    request_deps = _create_request_deps(deps)
+    return await http.get_list(url, TrafficSource, request_deps)
+
+
+class LoadTrafficSourcesDeps(TypedDict):
+    keitaro_url: str
+    keitaro_api_key: str
+
+
+def _create_request_deps(deps: CreateRequestDepsDeps) -> RequestDeps:
+    return {"headers": {"Api-Key": deps["keitaro_api_key"]}}
+
+
+class CreateRequestDepsDeps(TypedDict):
+    keitaro_api_key: str
+
+
+class RequestDeps(TypedDict):
+    headers: dict[str, str]
 
 
 class CampaignDraft(BaseModel):
