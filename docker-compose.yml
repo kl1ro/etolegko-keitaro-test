@@ -18,6 +18,7 @@ services:
     build: ./backend
     env_file: .env
     command: ["alembic", "upgrade", "head"]
+    profiles: ["migrate"]
 
     volumes:
       - ./backend/alembic/versions:/app/alembic/versions
@@ -34,8 +35,8 @@ services:
       - "8000:8000"
 
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
 
   web:
     build: ./frontend
