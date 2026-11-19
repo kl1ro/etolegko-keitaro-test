@@ -5,6 +5,7 @@ from typing import Annotated, TypedDict
 
 from fastapi import Depends
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
@@ -137,3 +138,47 @@ def get_offer_stream_draft(campaign: Campaign, offer_id: int) -> StreamDraft:
         action_type="",
         offers=[StreamOffer(offer_id=offer_id, share=100)],
     )
+
+
+def get_campaigns_load_deps(
+    keitaro: Annotated[Keitaro, Depends(get_keitaro)],
+    database: Annotated[AsyncSession, Depends(open_session)],
+) -> LoadCampaignsDeps:
+    return {"keitaro": keitaro, "database": database}
+
+
+async def load_campaigns(deps: LoadCampaignsDeps) -> list[Campaign]:
+    campaign_ids = await load_saved_campaign_ids(deps)
+    campaigns = await load_keitaro_campaigns(campaign_ids, deps)
+    return campaigns
+
+
+class LoadCampaignsDeps(TypedDict):
+    keitaro: Keitaro
+    database: AsyncSession
+
+
+async def load_saved_campaign_ids(deps: LoadSavedCampaignIdsDeps) -> list[int]:
+    query = select(models.Campaign.id).order_by(models.Campaign.created_at)
+    result = await deps["database"].scalars(query)
+    campaign_ids = list(result)
+    return campaign_ids
+
+
+class LoadSavedCampaignIdsDeps(TypedDict):
+    database: AsyncSession
+
+
+async def load_keitaro_campaigns(
+    campaign_ids: list[int],
+    deps: LoadKeitaroCampaignsDeps,
+) -> list[Campaign]:
+    campaigns = await asyncio.gather(
+        *(deps["keitaro"].load_campaign(campaign_id) for campaign_id in campaign_ids),
+    )
+
+    return list(campaigns)
+
+
+class LoadKeitaroCampaignsDeps(TypedDict):
+    keitaro: Keitaro

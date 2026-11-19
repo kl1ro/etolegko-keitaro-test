@@ -17,3 +17,13 @@ async def handle_campaign_creation(
     ],
 ) -> Campaign:
     return await campaigns.create_campaign(form, deps)
+
+
+@router.get("/campaigns")
+async def handle_campaigns_load(
+    deps: Annotated[
+        campaigns.LoadCampaignsDeps,
+        Depends(campaigns.get_campaigns_load_deps),
+    ],
+) -> list[Campaign]:
+    return await campaigns.load_campaigns(deps)
