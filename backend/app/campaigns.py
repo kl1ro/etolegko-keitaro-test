@@ -20,7 +20,7 @@ from app.keitaro import (
 async def create_campaign(form: CampaignForm, deps: CreateCampaignDeps) -> Campaign:
     draft = get_campaign_draft(form, deps)
     campaign = await deps["keitaro"].create_campaign(draft)
-    await create_streams_or_delete_campaign(campaign, form, deps)
+    await complete_campaign_or_delete(campaign, form, deps)
     return campaign
 
 
@@ -35,16 +35,8 @@ class CampaignForm(BaseModel):
 
 class CreateCampaignDeps(TypedDict):
     keitaro: Keitaro
-    campaign_prefix: str
-
-
-async def save_campaign(campaign: Campaign, deps: SaveCampaignDeps) -> None:
-    deps["database"].add(models.Campaign(id=campaign.id))
-    await deps["database"].commit()
-
-
-class SaveCampaignDeps(TypedDict):
     database: AsyncSession
+    campaign_prefix: str
 
 
 def get_campaign_draft(form: CampaignForm, deps: GetCampaignDraftDeps) -> CampaignDraft:
@@ -61,20 +53,22 @@ class GetCampaignDraftDeps(TypedDict):
     campaign_prefix: str
 
 
-async def create_streams_or_delete_campaign(
+async def complete_campaign_or_delete(
     campaign: Campaign,
     form: CampaignForm,
-    deps: CreateStreamsOrDeleteCampaignDeps,
+    deps: CompleteCampaignOrDeleteDeps,
 ) -> None:
     try:
         await create_campaign_streams(campaign, form, deps)
+        await save_campaign(campaign, deps)
     except Exception:
         await deps["keitaro"].delete_campaign(campaign.id)
         raise
 
 
-class CreateStreamsOrDeleteCampaignDeps(TypedDict):
+class CompleteCampaignOrDeleteDeps(TypedDict):
     keitaro: Keitaro
+    database: AsyncSession
 
 
 async def create_campaign_streams(
@@ -93,6 +87,15 @@ async def create_campaign_streams(
 
 class CreateCampaignStreamsDeps(TypedDict):
     keitaro: Keitaro
+
+
+async def save_campaign(campaign: Campaign, deps: SaveCampaignDeps) -> None:
+    deps["database"].add(models.Campaign(id=campaign.id))
+    await deps["database"].commit()
+
+
+class SaveCampaignDeps(TypedDict):
+    database: AsyncSession
 
 
 def get_country_stream_draft(campaign: Campaign, country: str) -> StreamDraft:
