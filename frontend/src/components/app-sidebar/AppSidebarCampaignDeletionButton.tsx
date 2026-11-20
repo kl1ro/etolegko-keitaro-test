@@ -49,13 +49,18 @@ function useAppSidebarCampaignDeletionButtonState(
 }
 
 async function tryDeleteCampaign(deps: TryDeleteCampaignDeps) {
+  const toastId = getCampaignDeletionToastId(deps.campaign);
+
   try {
+    toast.loading("Удаление кампании…", { id: toastId });
     await deps.deletion.mutateAsync(deps.campaign.id);
     if (deps.isOpen) deps.router.push("/");
     await refreshCampaigns(deps);
+    toast.success("Кампания удалена", { id: toastId });
   } catch (error) {
     console.error(error);
     toast.error("Не удалось удалить кампанию", {
+      id: toastId,
       description: describeApiRejection(error),
     });
   }
@@ -67,6 +72,10 @@ interface TryDeleteCampaignDeps {
   router: ReturnType<typeof useRouter>;
   queryClient: QueryClient;
   deletion: UseMutationResult<undefined, Error, Campaign["id"]>;
+}
+
+function getCampaignDeletionToastId(campaign: Campaign) {
+  return `campaign-deletion-${campaign.id}`;
 }
 
 async function refreshCampaigns(deps: RefreshCampaignsDeps) {

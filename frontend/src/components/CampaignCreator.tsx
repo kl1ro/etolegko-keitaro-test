@@ -113,16 +113,21 @@ async function tryCreateCampaign(
   deps: TryCreateCampaignDeps,
 ) {
   try {
+    toast.loading("Создание кампании…", { id: CAMPAIGN_CREATION_TOAST_ID });
     const campaign = await createCampaign(form);
     await refreshCampaignList(deps);
     openCampaignEditor(campaign, deps);
+    toast.success("Кампания создана", { id: CAMPAIGN_CREATION_TOAST_ID });
   } catch (error) {
     console.error(error);
     toast.error("Не удалось создать кампанию", {
+      id: CAMPAIGN_CREATION_TOAST_ID,
       description: describeApiRejection(error),
     });
   }
 }
+
+const CAMPAIGN_CREATION_TOAST_ID = "campaign-creation";
 
 interface TryCreateCampaignDeps {
   queryClient: QueryClient;

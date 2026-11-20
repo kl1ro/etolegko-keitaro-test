@@ -71,18 +71,25 @@ function useCampaignOfferAdditionState(props: CampaignOfferAdditionProps) {
 async function tryAddCampaignOffer(deps: TryAddCampaignOfferDeps) {
   try {
     if (!deps.selectedOfferId.value) return;
+    toast.loading("Добавление оффера…", { id: OFFER_ADDITION_TOAST_ID });
+
     const campaignOffers = await deps.addition.mutateAsync(
       deps.selectedOfferId.value,
     );
+
     cacheCampaignOffers(campaignOffers, deps);
     deps.selectedOfferId.set(undefined);
+    toast.success("Оффер добавлен", { id: OFFER_ADDITION_TOAST_ID });
   } catch (error) {
     console.error(error);
     toast.error("Не удалось добавить оффер", {
+      id: OFFER_ADDITION_TOAST_ID,
       description: describeApiRejection(error),
     });
   }
 }
+
+const OFFER_ADDITION_TOAST_ID = "offer-addition";
 
 interface TryAddCampaignOfferDeps {
   campaignId: Campaign["id"];

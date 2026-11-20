@@ -123,14 +123,21 @@ interface GetOfferNameDeps {
 }
 
 async function tryRemoveCampaignOffer(deps: TryRemoveCampaignOfferDeps) {
+  const toastId = getOfferRemovalToastId(deps.campaignOffer);
+
   try {
+    toast.loading("Удаление оффера…", { id: toastId });
+
     const campaignOffers = await deps.removal.mutateAsync(
       deps.campaignOffer.offer_id,
     );
+
     cacheCampaignOffers(campaignOffers, deps);
+    toast.success("Оффер удалён", { id: toastId });
   } catch (error) {
     console.error(error);
     toast.error("Не удалось удалить оффер", {
+      id: toastId,
       description: describeApiRejection(error),
     });
   }
@@ -141,4 +148,8 @@ interface TryRemoveCampaignOfferDeps {
   campaignOffer: StreamOffer;
   queryClient: QueryClient;
   removal: UseMutationResult<StreamOffer[], Error, Offer["id"]>;
+}
+
+function getOfferRemovalToastId(campaignOffer: StreamOffer) {
+  return `offer-removal-${campaignOffer.offer_id}`;
 }
