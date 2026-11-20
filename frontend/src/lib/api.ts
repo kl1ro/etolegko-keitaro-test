@@ -1,11 +1,20 @@
 import { z } from "zod";
 
 export async function loadCampaigns() {
-  return sendApiRequest({ method: "GET", path: "/campaigns", schema: z.array(CAMPAIGN_SCHEMA) });
+  return sendApiRequest({
+    method: "GET",
+    path: "/campaigns",
+    schema: z.array(CAMPAIGN_SCHEMA),
+  });
 }
 
 export async function createCampaign(form: CampaignForm) {
-  return sendApiRequest({ method: "POST", path: "/campaigns", body: form, schema: CAMPAIGN_SCHEMA });
+  return sendApiRequest({
+    method: "POST",
+    path: "/campaigns",
+    body: form,
+    schema: CAMPAIGN_SCHEMA,
+  });
 }
 
 export interface CampaignForm {
@@ -18,34 +27,68 @@ export interface CampaignForm {
 }
 
 export async function loadOffers() {
-  return sendApiRequest({ method: "GET", path: "/offers", schema: z.array(OFFER_SCHEMA) });
+  return sendApiRequest({
+    method: "GET",
+    path: "/offers",
+    schema: z.array(OFFER_SCHEMA),
+  });
 }
 
 export async function loadDomains() {
-  return sendApiRequest({ method: "GET", path: "/domains", schema: z.array(DOMAIN_SCHEMA) });
+  return sendApiRequest({
+    method: "GET",
+    path: "/domains",
+    schema: z.array(DOMAIN_SCHEMA),
+  });
 }
 
 export async function loadCampaignGroups() {
-  return sendApiRequest({ method: "GET", path: "/campaign-groups", schema: z.array(CAMPAIGN_GROUP_SCHEMA) });
+  return sendApiRequest({
+    method: "GET",
+    path: "/campaign-groups",
+    schema: z.array(CAMPAIGN_GROUP_SCHEMA),
+  });
 }
 
 export async function loadTrafficSources() {
-  return sendApiRequest({ method: "GET", path: "/traffic-sources", schema: z.array(TRAFFIC_SOURCE_SCHEMA) });
+  return sendApiRequest({
+    method: "GET",
+    path: "/traffic-sources",
+    schema: z.array(TRAFFIC_SOURCE_SCHEMA),
+  });
 }
 
 export async function loadCampaignOffers(campaignId: Campaign["id"]) {
   const path = getCampaignOffersPath(campaignId);
-  return sendApiRequest({ method: "GET", path, schema: z.array(STREAM_OFFER_SCHEMA) });
+  return sendApiRequest({
+    method: "GET",
+    path,
+    schema: z.array(STREAM_OFFER_SCHEMA),
+  });
 }
 
-export async function addCampaignOffer(campaignId: Campaign["id"], offerId: Offer["id"]) {
+export async function addCampaignOffer(
+  campaignId: Campaign["id"],
+  offerId: Offer["id"],
+) {
   const path = getCampaignOfferPath(campaignId, offerId);
-  return sendApiRequest({ method: "POST", path, schema: z.array(STREAM_OFFER_SCHEMA) });
+  return sendApiRequest({
+    method: "POST",
+    path,
+    schema: z.array(STREAM_OFFER_SCHEMA),
+  });
 }
 
-export async function removeCampaignOffer(campaignId: Campaign["id"], offerId: Offer["id"]) {
+export async function removeCampaignOffer(
+  campaignId: Campaign["id"],
+  offerId: Offer["id"],
+) {
   const path = getCampaignOfferPath(campaignId, offerId);
-  return sendApiRequest({ method: "DELETE", path, schema: z.array(STREAM_OFFER_SCHEMA) });
+  return sendApiRequest({
+    method: "DELETE",
+    path,
+    schema: z.array(STREAM_OFFER_SCHEMA),
+  });
 }
 
 export function describeApiRejection(error: unknown): string | undefined {
@@ -53,7 +96,9 @@ export function describeApiRejection(error: unknown): string | undefined {
   return convertApiRejectionDetailToText(error.detail);
 }
 
-async function sendApiRequest<Schema extends z.ZodType>(request: ApiRequest<Schema>): Promise<z.output<Schema>> {
+async function sendApiRequest<Schema extends z.ZodType>(
+  request: ApiRequest<Schema>,
+): Promise<z.output<Schema>> {
   const response = await fetchApiResponse(request);
   if (!response.ok) throw await readApiRequestRejectionError(request, response);
   const body = await readApiResponseBody(request, response);
@@ -71,7 +116,10 @@ function getCampaignOffersPath(campaignId: Campaign["id"]) {
   return `/campaigns/${campaignId}/offers`;
 }
 
-function getCampaignOfferPath(campaignId: Campaign["id"], offerId: Offer["id"]) {
+function getCampaignOfferPath(
+  campaignId: Campaign["id"],
+  offerId: Offer["id"],
+) {
   return `${getCampaignOffersPath(campaignId)}/${offerId}`;
 }
 
@@ -82,18 +130,31 @@ function convertApiRejectionDetailToText(detail: unknown): string | undefined {
 
 async function fetchApiResponse(request: ApiRequest<z.ZodType>) {
   try {
-    return await fetch(`${API_PATH}${request.path}`, convertApiRequestToFetchOptions(request));
+    return await fetch(
+      `${API_PATH}${request.path}`,
+      convertApiRequestToFetchOptions(request),
+    );
   } catch (error) {
     throw new ApiRequestFailedError({ request, cause: error });
   }
 }
 
-async function readApiRequestRejectionError(request: ApiRequest<z.ZodType>, response: Response) {
+async function readApiRequestRejectionError(
+  request: ApiRequest<z.ZodType>,
+  response: Response,
+) {
   const detail = await readApiRejectionDetail(response);
-  return new ApiRequestRejectedError({ request, status: response.status, detail });
+  return new ApiRequestRejectedError({
+    request,
+    status: response.status,
+    detail,
+  });
 }
 
-async function readApiResponseBody(request: ApiRequest<z.ZodType>, response: Response): Promise<unknown> {
+async function readApiResponseBody(
+  request: ApiRequest<z.ZodType>,
+  response: Response,
+): Promise<unknown> {
   try {
     return await response.json();
   } catch (error) {
@@ -101,13 +162,19 @@ async function readApiResponseBody(request: ApiRequest<z.ZodType>, response: Res
   }
 }
 
-function parseApiResponseBody<Schema extends z.ZodType>(body: unknown, request: ApiRequest<Schema>): z.output<Schema> {
+function parseApiResponseBody<Schema extends z.ZodType>(
+  body: unknown,
+  request: ApiRequest<Schema>,
+): z.output<Schema> {
   const parsed = request.schema.safeParse(body);
-  if (!parsed.success) throw new ApiRequestFailedError({ request, cause: parsed.error });
+  if (!parsed.success)
+    throw new ApiRequestFailedError({ request, cause: parsed.error });
   return parsed.data;
 }
 
-function convertApiRequestToFetchOptions(request: ApiRequest<z.ZodType>): RequestInit {
+function convertApiRequestToFetchOptions(
+  request: ApiRequest<z.ZodType>,
+): RequestInit {
   if (request.body === undefined) return { method: request.method };
 
   return {
@@ -128,8 +195,17 @@ export class ApiRequestFailedError extends Error {
   public method: ApiRequest<z.ZodType>["method"];
   public path: string;
 
-  public constructor(options: ErrorOptions & { request: ApiRequest<z.ZodType>; message?: string }) {
-    super(options.message ?? `Request ${options.request.method} ${options.request.path} failed`, options);
+  public constructor(
+    options: ErrorOptions & {
+      request: ApiRequest<z.ZodType>;
+      message?: string;
+    },
+  ) {
+    super(
+      options.message ??
+        `Request ${options.request.method} ${options.request.path} failed`,
+      options,
+    );
     this.method = options.request.method;
     this.path = options.request.path;
   }
@@ -141,7 +217,11 @@ export class ApiRequestRejectedError extends ApiRequestFailedError {
   public detail: unknown;
 
   public constructor(
-    options: ErrorOptions & { request: ApiRequest<z.ZodType>; status: number; detail: unknown },
+    options: ErrorOptions & {
+      request: ApiRequest<z.ZodType>;
+      status: number;
+      detail: unknown;
+    },
   ) {
     super({
       ...options,
