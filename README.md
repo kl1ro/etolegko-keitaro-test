@@ -38,26 +38,6 @@
 
 `docker compose up` никогда не запускает миграции: сервис `migrate` спрятан за профилем `migrate`, поэтому стартует, только если назвать его явно. На серверах его запускает этап migrate в CI перед деплоем; локально запускайте его вручную после того, как подтянули новые миграции.
 
-## Миграции
-
-Применить миграции:
-
-```sh
-docker compose run --rm migrate
-```
-
-Создать миграцию после изменения моделей в `backend/app/models.py` (база данных должна быть запущена; `alembic/versions` примонтирована, поэтому файл появится в репозитории):
-
-```sh
-docker compose run --rm migrate alembic revision --autogenerate -m "describe the change"
-```
-
-Откатить последнюю миграцию:
-
-```sh
-docker compose run --rm migrate alembic downgrade -1
-```
-
 ## Просмотр базы данных
 
 Prisma Studio запускается отдельным сервисом `studio`. Он читает базу напрямую по её URL, поэтому ему не нужна схема Prisma, и он работает рядом с SQLAlchemy:
