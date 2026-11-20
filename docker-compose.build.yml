@@ -1,0 +1,12 @@
+services:
+  migrate:
+    build: ./backend
+
+  api:
+    build: ./backend
+
+  studio:
+    build: ./studio
+
+  web:
+    build: ./frontend

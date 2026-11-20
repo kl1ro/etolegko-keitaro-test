@@ -38,6 +38,22 @@ A test assignment: a campaign creator and an offer editor on top of the Keitaro 
 
 `docker compose up` never runs migrations: the `migrate` service sits behind the `migrate` profile, so it starts only when named explicitly. On servers the CI migrate stage runs it before deploying; locally run it by hand after pulling new migrations.
 
+### Build the images locally
+
+`docker-compose.build.yml` adds build contexts to the app services. To use it with every `docker compose` command, add to `.env`:
+
+```sh
+COMPOSE_FILE=docker-compose.yml:docker-compose.build.yml
+```
+
+Then build instead of pulling (step 2) and run the rest as above:
+
+```sh
+docker compose build
+```
+
+Local builds get the same image names as the pulled ones, so after removing the line from `.env` run `docker compose pull` to get the CI images back.
+
 ## Migrations
 
 Apply migrations:
