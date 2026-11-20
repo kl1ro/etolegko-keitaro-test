@@ -1,19 +1,21 @@
 "use client";
 
-import { ListIcon, PlusIcon, type LucideIcon } from "lucide-react";
-import Link from "next/link";
+import { PlusIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
+import AppSidebarLink from "@/components/app-sidebar/AppSidebarLink";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
+  SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
 
 export default function AppSidebar() {
@@ -25,77 +27,76 @@ export default function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <Suspense fallback={<AppSidebarMenu />}>
-            <ActiveAppSidebarMenu />
-          </Suspense>
+          <SidebarMenu>
+            <Suspense fallback={<NewCampaignLink />}>
+              <ActiveNewCampaignLink />
+            </Suspense>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Кампании</SidebarGroupLabel>
+
+          <ErrorBoundary fallback={<CampaignsLoadError />}>
+            <Suspense fallback={<CampaignsSkeleton />}>
+              <AppSidebarCampaigns />
+            </Suspense>
+          </ErrorBoundary>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
 }
 
-function AppSidebarMenu(props: AppSidebarMenuProps) {
-  const state = useAppSidebarMenuState();
+function NewCampaignLink(props: NewCampaignLinkProps) {
+  return (
+    <AppSidebarLink href={NEW_CAMPAIGN_HREF} isActive={props.isActive}>
+      <PlusIcon />
+      <span>Новая кампания</span>
+    </AppSidebarLink>
+  );
+}
 
+interface NewCampaignLinkProps {
+  isActive?: boolean;
+}
+
+const NEW_CAMPAIGN_HREF = "/campaigns/new";
+
+function ActiveNewCampaignLink() {
+  const state = useActiveNewCampaignLinkState();
+  return <NewCampaignLink isActive={state.isActive} />;
+}
+
+function CampaignsLoadError() {
+  return (
+    <p className="px-2 text-sm text-muted-foreground">
+      Не удалось загрузить кампании
+    </p>
+  );
+}
+
+function CampaignsSkeleton() {
   return (
     <SidebarMenu>
-      {APP_SIDEBAR_LINKS_FROM_SHALLOWEST.map((link) => (
-        <SidebarMenuItem key={link.href}>
-          <SidebarMenuButton asChild isActive={link === props.activeLink}>
-            <Link
-              href={link.href}
-              onClick={() => state.sidebar.setOpenMobile(false)}
-            >
-              <link.icon />
-              <span>{link.label}</span>
-            </Link>
-          </SidebarMenuButton>
+      {CAMPAIGNS_SKELETON_KEYS.map((key) => (
+        <SidebarMenuItem key={key}>
+          <SidebarMenuSkeleton />
         </SidebarMenuItem>
       ))}
     </SidebarMenu>
   );
 }
 
-interface AppSidebarMenuProps {
-  activeLink?: AppSidebarLink;
-}
+const CAMPAIGNS_SKELETON_KEYS = ["first", "second", "third"];
 
-function ActiveAppSidebarMenu() {
-  const state = useActiveAppSidebarMenuState();
-  return <AppSidebarMenu activeLink={state.activeLink} />;
-}
+const AppSidebarCampaigns = dynamic(
+  () => import("@/components/app-sidebar/AppSidebarCampaigns"),
+  { ssr: false },
+);
 
-function useAppSidebarMenuState() {
+function useActiveNewCampaignLinkState() {
   return {
-    sidebar: useSidebar(),
+    isActive: usePathname() === NEW_CAMPAIGN_HREF,
   };
 }
-
-function useActiveAppSidebarMenuState() {
-  return {
-    activeLink: findActiveAppSidebarLink(usePathname()),
-  };
-}
-
-function findActiveAppSidebarLink(
-  pathname: string,
-): AppSidebarLink | undefined {
-  return APP_SIDEBAR_LINKS_FROM_SHALLOWEST.findLast((link) =>
-    isPathInsideLink(pathname, link),
-  );
-}
-
-function isPathInsideLink(pathname: string, link: AppSidebarLink) {
-  return pathname === link.href || pathname.startsWith(`${link.href}/`);
-}
-
-interface AppSidebarLink {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-}
-
-const APP_SIDEBAR_LINKS_FROM_SHALLOWEST: AppSidebarLink[] = [
-  { href: "/campaigns", label: "Кампании", icon: ListIcon },
-  { href: "/campaigns/new", label: "Новая кампания", icon: PlusIcon },
-];
