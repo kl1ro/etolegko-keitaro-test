@@ -27,7 +27,7 @@ export async function deleteCampaign(campaignId: Campaign["id"]) {
 
 export interface CampaignForm {
   name: string;
-  country: string;
+  countries: string[];
   offer_id: Offer["id"];
   domain_id: Domain["id"];
   group_id: CampaignGroup["id"];

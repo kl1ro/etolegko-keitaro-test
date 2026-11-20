@@ -96,7 +96,7 @@ function useCampaignCreatorState() {
   return {
     form: useForm<CampaignFormValues, unknown, CampaignForm>({
       resolver: zodResolver(CAMPAIGN_FORM_SCHEMA),
-      defaultValues: { name: "" },
+      defaultValues: { name: "", countries: [] },
     }),
 
     offers: useQuery(OFFERS_QUERY),

@@ -5,7 +5,7 @@ import secrets
 from typing import Annotated, TypedDict
 
 from fastapi import Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -52,7 +52,7 @@ async def create_campaign(form: CampaignForm, deps: CreateCampaignDeps) -> Campa
 
 class CampaignForm(BaseModel):
     name: str
-    country: str
+    countries: list[str] = Field(min_length=1)
     offer_id: int
     domain_id: int
     group_id: int
@@ -91,7 +91,7 @@ async def create_campaign_streams(
     campaign: Campaign,
     deps: CreateCampaignStreamsDeps,
 ) -> None:
-    country_stream = get_country_stream_draft(campaign, deps["form"].country)
+    country_stream = get_country_stream_draft(campaign, deps["form"].countries)
     offer_stream = get_offer_stream_draft(campaign, deps["form"].offer_id)
 
     await asyncio.gather(
@@ -121,16 +121,16 @@ def generate_campaign_alias() -> str:
 CAMPAIGN_ALIAS_BYTES = 4
 
 
-def get_country_stream_draft(campaign: Campaign, country: str) -> StreamDraft:
+def get_country_stream_draft(campaign: Campaign, countries: list[str]) -> StreamDraft:
     return StreamDraft(
         campaign_id=campaign.id,
         type="regular",
-        name=f"{country} to Google",
+        name=f"{', '.join(countries)} to Google",
         position=1,
         action_schema="redirect",
         action_type="http",
         action_payload=GOOGLE_URL,
-        filters=[StreamFilter(name="country", mode="accept", payload=[country])],
+        filters=[StreamFilter(name="country", mode="accept", payload=countries)],
     )
 
 
