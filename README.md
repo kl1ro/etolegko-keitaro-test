@@ -1,90 +1,90 @@
-# Keitaro campaign manager
+# Менеджер кампаний Keitaro
 
-A test assignment: a campaign creator and an offer editor on top of the Keitaro Admin API.
+Тестовое задание: создание кампаний и редактор офферов поверх Keitaro Admin API.
 
 - `backend/` — FastAPI, SQLAlchemy, Alembic (Python 3.13, uv)
 - `frontend/` — Next.js
-- `docker-compose.yml` — Postgres, the API and the web app
+- `docker-compose.yml` — Postgres, API и веб-приложение
 
-## Run
+## Запуск
 
-1. Create `.env` from the example and fill in `KEITARO_API_KEY` (the key is in the Keitaro admin panel):
+1. Создайте `.env` из примера и заполните `KEITARO_API_KEY` (ключ есть в админке Keitaro):
 
    ```sh
    cp .env.example .env
    ```
 
-2. Pull the images CI built from `main` (if the packages are private, log in first: `docker login ghcr.io` with a token that has `read:packages`):
+2. Скачайте образы, которые CI собрал из `main` (если пакеты приватные, сначала войдите: `docker login ghcr.io` с токеном, у которого есть `read:packages`):
 
    ```sh
    docker compose pull
    ```
 
-3. Start the database and apply migrations:
+3. Запустите базу данных и примените миграции:
 
    ```sh
    docker compose up -d db
    docker compose run --rm migrate
    ```
 
-4. Start everything:
+4. Запустите всё:
 
    ```sh
    docker compose up
    ```
 
-   - web app: http://localhost:3000
-   - API docs: http://localhost:8000/docs
+   - веб-приложение: http://localhost:3000
+   - документация API: http://localhost:8000/docs
 
-`docker compose up` never runs migrations: the `migrate` service sits behind the `migrate` profile, so it starts only when named explicitly. On servers the CI migrate stage runs it before deploying; locally run it by hand after pulling new migrations.
+`docker compose up` никогда не запускает миграции: сервис `migrate` спрятан за профилем `migrate`, поэтому стартует, только если назвать его явно. На серверах его запускает этап migrate в CI перед деплоем; локально запускайте его вручную после того, как подтянули новые миграции.
 
-### Build the images locally
+### Локальная сборка образов
 
-The app services have both an image and a build context, and Compose pulls by default. To build from source instead:
+У сервисов приложения указаны и образ, и контекст сборки, а Compose по умолчанию скачивает образы. Чтобы собрать их из исходников:
 
 ```sh
 docker compose up -d --build
 ```
 
-Local builds get the same image names as the pulled ones, so plain `docker compose up` keeps using them. To get the CI images back:
+Локально собранные образы получают те же имена, что и скачанные, поэтому обычный `docker compose up` продолжит использовать их. Чтобы вернуть образы из CI:
 
 ```sh
 docker compose up -d --pull always
 ```
 
-## Migrations
+## Миграции
 
-Apply migrations:
+Применить миграции:
 
 ```sh
 docker compose run --rm migrate
 ```
 
-Create a migration after changing models in `backend/app/models.py` (the database must be running; `alembic/versions` is mounted, so the file lands in the repository):
+Создать миграцию после изменения моделей в `backend/app/models.py` (база данных должна быть запущена; `alembic/versions` примонтирована, поэтому файл появится в репозитории):
 
 ```sh
 docker compose run --rm migrate alembic revision --autogenerate -m "describe the change"
 ```
 
-Roll back the last migration:
+Откатить последнюю миграцию:
 
 ```sh
 docker compose run --rm migrate alembic downgrade -1
 ```
 
-## Browsing the database
+## Просмотр базы данных
 
-Prisma Studio runs as a separate `studio` service. It reads the database directly from its URL, so it needs no Prisma schema and works next to SQLAlchemy:
+Prisma Studio запускается отдельным сервисом `studio`. Он читает базу напрямую по её URL, поэтому ему не нужна схема Prisma, и он работает рядом с SQLAlchemy:
 
 ```sh
 docker compose up studio
 ```
 
-Then open http://localhost:5555. The service sits behind the `studio` profile, so `docker compose up` never starts it, and its port is bound to localhost only.
+Затем откройте http://localhost:5555. Сервис спрятан за профилем `studio`, поэтому `docker compose up` его не запускает, а его порт открыт только на localhost.
 
-## Local development without Docker
+## Локальная разработка без Docker
 
-Postgres from compose is exposed on `localhost:5432`, so the API can run on the host against it:
+Postgres из compose доступен на `localhost:5432`, поэтому API можно запустить прямо на машине:
 
 ```sh
 docker compose up -d db
