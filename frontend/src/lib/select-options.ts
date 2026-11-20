@@ -13,3 +13,7 @@ export function convertNamedRecordToOption(
 ): SelectOption<NamedRecord["id"]> {
   return { value: record.id, label: record.name, hint: `#${record.id}` };
 }
+
+export function getOptionSearchText(option: SelectOption<SelectOptionValue>) {
+  return `${option.label} ${option.hint}`;
+}

@@ -17,7 +17,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { SelectOption, SelectOptionValue } from "@/lib/select-options";
+import {
+  getOptionSearchText,
+  type SelectOption,
+  type SelectOptionValue,
+} from "@/lib/select-options";
 import { cn } from "@/lib/utils";
 
 export default function SearchableSelect<Value extends SelectOptionValue>(
@@ -108,10 +112,6 @@ function useSearchableSelectState<Value extends SelectOptionValue>(
     selectedOption: findSelectedOption(props.value, props),
     onValueChange: props.onValueChange,
   };
-}
-
-function getOptionSearchText(option: SelectOption<SelectOptionValue>) {
-  return `${option.label} ${option.hint}`;
 }
 
 function selectOption<Value extends SelectOptionValue>(

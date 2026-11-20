@@ -5,7 +5,7 @@ import type { CampaignForm } from "@/lib/api";
 
 export const CAMPAIGN_FORM_SCHEMA = z.object({
   name: z.string().trim().min(1, "Введите название"),
-  country: z.string({ error: "Выберите страну" }),
+  countries: z.array(z.string()).min(1, "Выберите хотя бы одну страну"),
   offer_id: z.number({ error: "Выберите оффер" }),
   domain_id: z.number({ error: "Выберите домен" }),
   group_id: z.number({ error: "Выберите группу" }),
@@ -20,5 +20,5 @@ export type CampaignFormState = UseFormReturn<
 >;
 export type CampaignFormLookupName = Exclude<
   keyof CampaignForm,
-  "name" | "country"
+  "name" | "countries"
 >;
