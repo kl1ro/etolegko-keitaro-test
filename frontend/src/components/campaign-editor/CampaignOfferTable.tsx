@@ -1,11 +1,23 @@
 "use client";
 
-import { useMutation, useQueryClient, type QueryClient, type UseMutationResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type UseMutationResult,
+} from "@tanstack/react-query";
 import { Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   describeApiRejection,
   removeCampaignOffer,
@@ -54,11 +66,17 @@ function CampaignOfferRow(props: CampaignOfferRowProps) {
   return (
     <TableRow>
       <TableCell>
-        <span className="font-medium">{getOfferName(props.campaignOffer, props)}</span>
-        <span className="ml-2 text-xs text-muted-foreground">#{props.campaignOffer.offer_id}</span>
+        <span className="font-medium">
+          {getOfferName(props.campaignOffer, props)}
+        </span>
+        <span className="ml-2 text-xs text-muted-foreground">
+          #{props.campaignOffer.offer_id}
+        </span>
       </TableCell>
 
-      <TableCell className="text-right tabular-nums">{props.campaignOffer.share}%</TableCell>
+      <TableCell className="text-right tabular-nums">
+        {props.campaignOffer.share}%
+      </TableCell>
 
       <TableCell>
         <Button
@@ -86,12 +104,17 @@ function useCampaignOfferRowState(props: CampaignOfferRowProps) {
     campaignId: props.campaignId,
     campaignOffer: props.campaignOffer,
     queryClient: useQueryClient(),
-    removal: useMutation({ mutationFn: (offerId: Offer["id"]) => removeCampaignOffer(props.campaignId, offerId) }),
+    removal: useMutation({
+      mutationFn: (offerId: Offer["id"]) =>
+        removeCampaignOffer(props.campaignId, offerId),
+    }),
   };
 }
 
 function getOfferName(campaignOffer: StreamOffer, deps: GetOfferNameDeps) {
-  const offer = deps.offers.find((candidate) => candidate.id === campaignOffer.offer_id);
+  const offer = deps.offers.find(
+    (candidate) => candidate.id === campaignOffer.offer_id,
+  );
   return offer?.name ?? "Оффер";
 }
 
@@ -101,11 +124,15 @@ interface GetOfferNameDeps {
 
 async function tryRemoveCampaignOffer(deps: TryRemoveCampaignOfferDeps) {
   try {
-    const campaignOffers = await deps.removal.mutateAsync(deps.campaignOffer.offer_id);
+    const campaignOffers = await deps.removal.mutateAsync(
+      deps.campaignOffer.offer_id,
+    );
     cacheCampaignOffers(campaignOffers, deps);
   } catch (error) {
     console.error(error);
-    toast.error("Не удалось удалить оффер", { description: describeApiRejection(error) });
+    toast.error("Не удалось удалить оффер", {
+      description: describeApiRejection(error),
+    });
   }
 }
 

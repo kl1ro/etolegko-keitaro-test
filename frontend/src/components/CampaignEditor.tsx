@@ -8,7 +8,11 @@ import PageTitle from "@/components/PageTitle";
 import QueryError from "@/components/QueryError";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Campaign } from "@/lib/api";
-import { CAMPAIGNS_QUERY, getCampaignOffersQuery, OFFERS_QUERY } from "@/lib/queries";
+import {
+  CAMPAIGNS_QUERY,
+  getCampaignOffersQuery,
+  OFFERS_QUERY,
+} from "@/lib/queries";
 
 export default function CampaignEditor(props: CampaignEditorProps) {
   const state = useCampaignEditorState(props);
@@ -26,7 +30,10 @@ export default function CampaignEditor(props: CampaignEditorProps) {
         {state.campaignOffers.isPending && <Skeleton className="h-40 w-full" />}
 
         {state.campaignOffers.isError && (
-          <QueryError message="Не удалось загрузить офферы кампании" error={state.campaignOffers.error} />
+          <QueryError
+            message="Не удалось загрузить офферы кампании"
+            error={state.campaignOffers.error}
+          />
         )}
 
         {state.campaignOffers.isSuccess && (
@@ -61,8 +68,13 @@ function useCampaignEditorState(props: CampaignEditorProps) {
   };
 }
 
-function getCampaignTitle(campaignId: Campaign["id"], deps: GetCampaignTitleDeps) {
-  const campaign = deps.campaigns.data?.find((candidate) => candidate.id === campaignId);
+function getCampaignTitle(
+  campaignId: Campaign["id"],
+  deps: GetCampaignTitleDeps,
+) {
+  const campaign = deps.campaigns.data?.find(
+    (candidate) => candidate.id === campaignId,
+  );
   return campaign?.name ?? `Кампания #${campaignId}`;
 }
 

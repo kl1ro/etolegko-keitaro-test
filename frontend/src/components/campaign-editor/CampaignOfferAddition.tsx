@@ -1,16 +1,29 @@
 "use client";
 
-import { useMutation, useQueryClient, type QueryClient, type UseMutationResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type UseMutationResult,
+} from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import SearchableSelect from "@/components/SearchableSelect";
 import { Button } from "@/components/ui/button";
-import { addCampaignOffer, describeApiRejection, type Campaign, type Offer, type StreamOffer } from "@/lib/api";
+import {
+  addCampaignOffer,
+  describeApiRejection,
+  type Campaign,
+  type Offer,
+  type StreamOffer,
+} from "@/lib/api";
 import { cacheCampaignOffers } from "@/lib/queries";
 import { convertNamedRecordToOption } from "@/lib/select-options";
 
-export default function CampaignOfferAddition(props: CampaignOfferAdditionProps) {
+export default function CampaignOfferAddition(
+  props: CampaignOfferAdditionProps,
+) {
   const state = useCampaignOfferAdditionState(props);
 
   return (
@@ -41,22 +54,31 @@ export interface CampaignOfferAdditionProps {
 function useCampaignOfferAdditionState(props: CampaignOfferAdditionProps) {
   return {
     campaignId: props.campaignId,
-    offerOptions: getOffersOutsideCampaign(props.offers, props).map(convertNamedRecordToOption),
+    offerOptions: getOffersOutsideCampaign(props.offers, props).map(
+      convertNamedRecordToOption,
+    ),
     selectedOfferId: useSelectedOfferId(),
     queryClient: useQueryClient(),
-    addition: useMutation({ mutationFn: (offerId: Offer["id"]) => addCampaignOffer(props.campaignId, offerId) }),
+    addition: useMutation({
+      mutationFn: (offerId: Offer["id"]) =>
+        addCampaignOffer(props.campaignId, offerId),
+    }),
   };
 }
 
 async function tryAddCampaignOffer(deps: TryAddCampaignOfferDeps) {
   try {
     if (!deps.selectedOfferId.value) return;
-    const campaignOffers = await deps.addition.mutateAsync(deps.selectedOfferId.value);
+    const campaignOffers = await deps.addition.mutateAsync(
+      deps.selectedOfferId.value,
+    );
     cacheCampaignOffers(campaignOffers, deps);
     deps.selectedOfferId.set(undefined);
   } catch (error) {
     console.error(error);
-    toast.error("Не удалось добавить оффер", { description: describeApiRejection(error) });
+    toast.error("Не удалось добавить оффер", {
+      description: describeApiRejection(error),
+    });
   }
 }
 
@@ -67,9 +89,16 @@ interface TryAddCampaignOfferDeps {
   addition: UseMutationResult<StreamOffer[], Error, Offer["id"]>;
 }
 
-function getOffersOutsideCampaign(offers: Offer[], deps: GetOffersOutsideCampaignDeps) {
-  const campaignOfferIds = new Set(deps.campaignOffers.map((campaignOffer) => campaignOffer.offer_id));
-  const offersOutsideCampaign = offers.filter((offer) => !campaignOfferIds.has(offer.id));
+function getOffersOutsideCampaign(
+  offers: Offer[],
+  deps: GetOffersOutsideCampaignDeps,
+) {
+  const campaignOfferIds = new Set(
+    deps.campaignOffers.map((campaignOffer) => campaignOffer.offer_id),
+  );
+  const offersOutsideCampaign = offers.filter(
+    (offer) => !campaignOfferIds.has(offer.id),
+  );
   return offersOutsideCampaign;
 }
 
