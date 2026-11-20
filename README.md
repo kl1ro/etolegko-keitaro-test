@@ -40,19 +40,17 @@ A test assignment: a campaign creator and an offer editor on top of the Keitaro 
 
 ### Build the images locally
 
-`docker-compose.build.yml` adds build contexts to the app services. To use it with every `docker compose` command, add to `.env`:
+The app services have both an image and a build context, and Compose pulls by default. To build from source instead:
 
 ```sh
-COMPOSE_FILE=docker-compose.yml:docker-compose.build.yml
+docker compose up -d --build
 ```
 
-Then build instead of pulling (step 2) and run the rest as above:
+Local builds get the same image names as the pulled ones, so plain `docker compose up` keeps using them. To get the CI images back:
 
 ```sh
-docker compose build
+docker compose up -d --pull always
 ```
-
-Local builds get the same image names as the pulled ones, so after removing the line from `.env` run `docker compose pull` to get the CI images back.
 
 ## Migrations
 
