@@ -28,12 +28,14 @@ export default function CampaignOfferAddition(
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
-      <SearchableSelect
-        value={state.selectedOfferId.value}
-        options={state.offerOptions}
-        placeholder="Выберите оффер"
-        onValueChange={state.selectedOfferId.set}
-      />
+      <div className="min-w-0 flex-1">
+        <SearchableSelect
+          value={state.selectedOfferId.value}
+          options={state.offerOptions}
+          placeholder="Выберите оффер"
+          onValueChange={state.selectedOfferId.set}
+        />
+      </div>
 
       <Button
         disabled={!state.selectedOfferId.value || state.addition.isPending}
