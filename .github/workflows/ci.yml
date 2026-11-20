@@ -45,8 +45,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
-      - run: npx eslint .
       - run: npx next typegen
+      - run: npx eslint .
       - run: npx tsc --noEmit
 
   build:
