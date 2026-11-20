@@ -38,9 +38,7 @@ export default function AppSidebar() {
           <SidebarGroupLabel>Кампании</SidebarGroupLabel>
 
           <ErrorBoundary fallback={<CampaignsLoadError />}>
-            <Suspense fallback={<CampaignsSkeleton />}>
-              <AppSidebarCampaigns />
-            </Suspense>
+            <AppSidebarCampaigns />
           </ErrorBoundary>
         </SidebarGroup>
       </SidebarContent>
@@ -92,7 +90,7 @@ const CAMPAIGNS_SKELETON_KEYS = ["first", "second", "third"];
 
 const AppSidebarCampaigns = dynamic(
   () => import("@/components/app-sidebar/AppSidebarCampaigns"),
-  { ssr: false },
+  { ssr: false, loading: CampaignsSkeleton },
 );
 
 function useActiveNewCampaignLinkState() {
