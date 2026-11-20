@@ -47,6 +47,20 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@theme {
+    --animate-glare-sweep: glare-sweep 1.8s ease-in-out infinite;
+
+    @keyframes glare-sweep {
+        from {
+            transform: translateX(-150%) skewX(-20deg);
+        }
+
+        to {
+            transform: translateX(350%) skewX(-20deg);
+        }
+    }
+}
+
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
