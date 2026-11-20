@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
-import { Suspense } from "react";
 
 import { cn } from "@/lib/utils";
 import StoreProvider from "@/state/StoreProvider";
@@ -17,9 +16,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={cn("font-sans", inter.variable)}>
       <body>
-        <Suspense>
-          <StoreProvider>{children}</StoreProvider>
-        </Suspense>
+        <StoreProvider>{children}</StoreProvider>
       </body>
     </html>
   );
