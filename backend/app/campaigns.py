@@ -191,3 +191,55 @@ async def load_keitaro_campaigns(
 
 class LoadKeitaroCampaignsDeps(TypedDict):
     keitaro: Keitaro
+
+
+def get_campaign_deletion_deps(
+    keitaro: Annotated[Keitaro, Depends(get_keitaro)],
+    database: Annotated[AsyncSession, Depends(open_session)],
+) -> DeleteCampaignDeps:
+    return {"keitaro": keitaro, "database": database}
+
+
+async def delete_campaign(campaign_id: int, deps: DeleteCampaignDeps) -> None:
+    saved_campaign = await load_saved_campaign(campaign_id, deps)
+    await deps["keitaro"].delete_campaign(campaign_id)
+    await delete_saved_campaign(saved_campaign, deps)
+
+
+class DeleteCampaignDeps(TypedDict):
+    keitaro: Keitaro
+    database: AsyncSession
+
+
+async def load_saved_campaign(
+    campaign_id: int,
+    deps: LoadSavedCampaignDeps,
+) -> models.Campaign:
+    saved_campaign = await deps["database"].get(models.Campaign, campaign_id)
+
+    if not saved_campaign:
+        raise CampaignNotFoundError(campaign_id)
+
+    return saved_campaign
+
+
+class LoadSavedCampaignDeps(TypedDict):
+    database: AsyncSession
+
+
+class CampaignNotFoundError(Exception):
+    def __init__(self, campaign_id: int) -> None:
+        super().__init__(f"Campaign {campaign_id} is not one of the saved campaigns")
+        self.campaign_id = campaign_id
+
+
+async def delete_saved_campaign(
+    saved_campaign: models.Campaign,
+    deps: DeleteSavedCampaignDeps,
+) -> None:
+    await deps["database"].delete(saved_campaign)
+    await deps["database"].commit()
+
+
+class DeleteSavedCampaignDeps(TypedDict):
+    database: AsyncSession
