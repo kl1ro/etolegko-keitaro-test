@@ -22,6 +22,8 @@ export default function AppSidebarLink(props: AppSidebarLinkProps) {
           {props.children}
         </Link>
       </SidebarMenuButton>
+
+      {props.action}
     </SidebarMenuItem>
   );
 }
@@ -29,6 +31,7 @@ export default function AppSidebarLink(props: AppSidebarLinkProps) {
 export interface AppSidebarLinkProps {
   href: string;
   isActive?: boolean;
+  action?: ReactNode;
   children: ReactNode;
 }
 
