@@ -3,7 +3,11 @@ import { Inter } from "next/font/google";
 
 import AppQueryClientProvider from "@/components/AppQueryClientProvider";
 import AppSidebar from "@/components/AppSidebar";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import StoreProvider from "@/state/StoreProvider";
@@ -28,7 +32,9 @@ export default function RootLayout(props: LayoutProps<"/">) {
                   <SidebarTrigger />
                 </header>
 
-                <div className="flex flex-1 flex-col p-4 md:p-8">{props.children}</div>
+                <div className="flex flex-1 flex-col p-4 md:p-8">
+                  {props.children}
+                </div>
               </SidebarInset>
             </SidebarProvider>
           </AppQueryClientProvider>
@@ -40,4 +46,7 @@ export default function RootLayout(props: LayoutProps<"/">) {
   );
 }
 
-const INTER_FONT = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-sans" });
+const INTER_FONT = Inter({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-sans",
+});
