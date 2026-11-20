@@ -27,7 +27,7 @@ export default function RootLayout(props: LayoutProps<"/">) {
             <SidebarProvider>
               <AppSidebar />
 
-              <SidebarInset>
+              <SidebarInset className="min-w-0">
                 <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center border-b bg-background px-4">
                   <SidebarTrigger className="cursor-pointer" />
                 </header>
