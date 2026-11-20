@@ -18,7 +18,7 @@ function getInitialBreakpoint(): Breakpoint {
 }
 
 function handleBreakpointSet(
-  _state: Breakpoint,
+  state: Breakpoint,
   action: PayloadAction<Breakpoint>,
 ) {
   return action.payload;
