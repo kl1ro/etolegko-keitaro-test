@@ -16,6 +16,7 @@ services:
 
   migrate:
     image: ghcr.io/kl1ro/etolegko-keitaro-test-backend:${IMAGE_TAG:-latest}
+    build: ./backend
     env_file: .env
     command: ["alembic", "upgrade", "head"]
     profiles: ["migrate"]
@@ -29,6 +30,7 @@ services:
 
   api:
     image: ghcr.io/kl1ro/etolegko-keitaro-test-backend:${IMAGE_TAG:-latest}
+    build: ./backend
     env_file: .env
 
     ports:
@@ -40,6 +42,7 @@ services:
 
   studio:
     image: ghcr.io/kl1ro/etolegko-keitaro-test-studio:${IMAGE_TAG:-latest}
+    build: ./studio
     env_file: .env
     profiles: ["studio"]
 
@@ -52,6 +55,7 @@ services:
 
   web:
     image: ghcr.io/kl1ro/etolegko-keitaro-test-frontend:${IMAGE_TAG:-latest}
+    build: ./frontend
 
     ports:
       - "3000:3000"
