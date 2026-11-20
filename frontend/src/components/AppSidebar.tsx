@@ -1,11 +1,11 @@
 "use client";
 
 import { PlusIcon } from "lucide-react";
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
+import AppSidebarCampaigns from "@/components/app-sidebar/AppSidebarCampaigns";
 import AppSidebarLink from "@/components/app-sidebar/AppSidebarLink";
 import {
   Sidebar,
@@ -14,8 +14,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
 
 export default function AppSidebar() {
@@ -73,25 +71,6 @@ function CampaignsLoadError() {
     </p>
   );
 }
-
-function CampaignsSkeleton() {
-  return (
-    <SidebarMenu>
-      {CAMPAIGNS_SKELETON_KEYS.map((key) => (
-        <SidebarMenuItem key={key}>
-          <SidebarMenuSkeleton />
-        </SidebarMenuItem>
-      ))}
-    </SidebarMenu>
-  );
-}
-
-const CAMPAIGNS_SKELETON_KEYS = ["first", "second", "third"];
-
-const AppSidebarCampaigns = dynamic(
-  () => import("@/components/app-sidebar/AppSidebarCampaigns"),
-  { ssr: false, loading: CampaignsSkeleton },
-);
 
 function useActiveNewCampaignLinkState() {
   return {

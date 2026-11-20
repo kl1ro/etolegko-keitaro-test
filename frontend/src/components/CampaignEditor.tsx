@@ -1,12 +1,13 @@
 "use client";
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { AnimatePresence } from "motion/react";
 
 import CampaignOfferAddition from "@/components/campaign-editor/CampaignOfferAddition";
 import CampaignOfferTable from "@/components/campaign-editor/CampaignOfferTable";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import PageTitle from "@/components/PageTitle";
 import QueryError from "@/components/QueryError";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { Campaign } from "@/lib/api";
 import {
   CAMPAIGNS_QUERY,
@@ -27,8 +28,6 @@ export default function CampaignEditor(props: CampaignEditorProps) {
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-medium">Офферы</h2>
 
-        {state.campaignOffers.isPending && <Skeleton className="h-40 w-full" />}
-
         {state.campaignOffers.isError && (
           <QueryError
             message="Не удалось загрузить офферы кампании"
@@ -36,20 +35,26 @@ export default function CampaignEditor(props: CampaignEditorProps) {
           />
         )}
 
-        {state.campaignOffers.isSuccess && (
-          <>
+        {!state.campaignOffers.isError && (
+          <div className="relative flex flex-col gap-4">
             <CampaignOfferTable
               campaignId={props.campaignId}
-              campaignOffers={state.campaignOffers.data}
+              campaignOffers={state.campaignOffers.data ?? []}
               offers={state.offers.data ?? []}
             />
 
             <CampaignOfferAddition
               campaignId={props.campaignId}
-              campaignOffers={state.campaignOffers.data}
+              campaignOffers={state.campaignOffers.data ?? []}
               offers={state.offers.data ?? []}
             />
-          </>
+
+            <AnimatePresence>
+              {state.campaignOffers.isPending && (
+                <LoadingOverlay key="loading" />
+              )}
+            </AnimatePresence>
+          </div>
         )}
       </section>
     </div>
