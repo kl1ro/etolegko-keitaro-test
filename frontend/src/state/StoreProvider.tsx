@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Provider } from "react-redux";
 
 import { getCurrentBreakpoint, getMobileMediaQuery } from "@/lib/breakpoint";
 import { setBreakpoint } from "@/state/features/breakpoint";
-import { createAppStore, type AppStore } from "@/state/store";
+import { makeStore, type AppStore } from "@/state/store";
 
 export default function StoreProvider(props: StoreProviderProps) {
   const state = useStoreProviderState();
@@ -32,8 +32,9 @@ interface UseStoreProviderEffectsDeps {
 }
 
 function usePerProviderStore() {
-  const [store] = useState(createAppStore);
-  return store;
+  const storeRef = useRef<AppStore | null>(null);
+  if (!storeRef.current) storeRef.current = makeStore();
+  return storeRef.current;
 }
 
 function useBreakpointTrackingEffect(deps: UseBreakpointTrackingEffectDeps) {
