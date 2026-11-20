@@ -14,10 +14,10 @@
    cp .env.example .env
    ```
 
-2. Скачайте образы, которые CI собрал из `main` (если пакеты приватные, сначала войдите: `docker login ghcr.io` с токеном, у которого есть `read:packages`):
+2. Соберите образы:
 
    ```sh
-   docker compose pull
+   docker compose build
    ```
 
 3. Запустите базу данных и примените миграции:
@@ -38,65 +38,12 @@
 
 `docker compose up` никогда не запускает миграции: сервис `migrate` спрятан за профилем `migrate`, поэтому стартует, только если назвать его явно. На серверах его запускает этап migrate в CI перед деплоем; локально запускайте его вручную после того, как подтянули новые миграции.
 
-### Локальная сборка образов
-
-У сервисов приложения указаны и образ, и контекст сборки, а Compose по умолчанию скачивает образы. Чтобы собрать их из исходников:
-
-```sh
-docker compose up -d --build
-```
-
-Локально собранные образы получают те же имена, что и скачанные, поэтому обычный `docker compose up` продолжит использовать их. Чтобы вернуть образы из CI:
-
-```sh
-docker compose up -d --pull always
-```
-
-## Миграции
-
-Применить миграции:
-
-```sh
-docker compose run --rm migrate
-```
-
-Создать миграцию после изменения моделей в `backend/app/models.py` (база данных должна быть запущена; `alembic/versions` примонтирована, поэтому файл появится в репозитории):
-
-```sh
-docker compose run --rm migrate alembic revision --autogenerate -m "describe the change"
-```
-
-Откатить последнюю миграцию:
-
-```sh
-docker compose run --rm migrate alembic downgrade -1
-```
-
 ## Просмотр базы данных
 
 Prisma Studio запускается отдельным сервисом `studio`. Он читает базу напрямую по её URL, поэтому ему не нужна схема Prisma, и он работает рядом с SQLAlchemy:
 
 ```sh
-docker compose up studio
+docker compose up --build studio
 ```
 
 Затем откройте http://localhost:5555. Сервис спрятан за профилем `studio`, поэтому `docker compose up` его не запускает, а его порт открыт только на localhost.
-
-## Локальная разработка без Docker
-
-Postgres из compose доступен на `localhost:5432`, поэтому API можно запустить прямо на машине:
-
-```sh
-docker compose up -d db
-
-cd backend
-uv sync
-set -a; . ../.env; set +a
-export DATABASE_URL=postgresql+psycopg://keitaro:keitaro@localhost:5432/keitaro
-uv run alembic upgrade head
-uv run uvicorn app.main:app --reload
-
-cd ../frontend
-npm install
-npm run dev
-```
