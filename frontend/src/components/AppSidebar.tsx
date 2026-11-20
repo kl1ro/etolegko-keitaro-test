@@ -20,7 +20,7 @@ export default function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="h-14 justify-center border-b px-4 font-semibold text-foreground">
-        Keitaro
+        Prosvirov Keitaro Test
       </SidebarHeader>
 
       <SidebarContent>
