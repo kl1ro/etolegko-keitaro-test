@@ -22,7 +22,7 @@ export default function AppSidebarCampaignDeletionButton(
   return (
     <SidebarMenuAction
       showOnHover
-      className="cursor-pointer text-muted-foreground"
+      className="cursor-pointer text-muted-foreground peer-hover/menu-button:text-muted-foreground peer-data-active/menu-button:text-muted-foreground"
       aria-label="Удалить кампанию"
       disabled={state.deletion.isPending}
       onClick={() => tryDeleteCampaign(state)}
