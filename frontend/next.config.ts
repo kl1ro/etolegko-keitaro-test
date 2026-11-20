@@ -6,8 +6,10 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
 
-  async rewrites() {
-    return [{ source: "/api/:path*", destination: `${API_URL}/:path*` }];
+  rewrites() {
+    return Promise.resolve([
+      { source: "/api/:path*", destination: `${API_URL}/:path*` },
+    ]);
   },
 
   turbopack: {
