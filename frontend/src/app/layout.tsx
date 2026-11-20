@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import { Suspense } from "react";
 
 import { cn } from "@/lib/utils";
-import StoreProvider from "@/components/StoreProvider";
+import StoreProvider from "@/state/StoreProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
