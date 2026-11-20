@@ -8,6 +8,8 @@ export interface SelectOption<Value extends SelectOptionValue> {
 
 export type SelectOptionValue = string | number;
 
-export function convertNamedRecordToOption(record: NamedRecord): SelectOption<NamedRecord["id"]> {
+export function convertNamedRecordToOption(
+  record: NamedRecord,
+): SelectOption<NamedRecord["id"]> {
   return { value: record.id, label: record.name, hint: `#${record.id}` };
 }

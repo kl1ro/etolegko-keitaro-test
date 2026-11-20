@@ -13,5 +13,12 @@ export const CAMPAIGN_FORM_SCHEMA = z.object({
 }) satisfies z.ZodType<CampaignForm>;
 
 export type CampaignFormValues = z.input<typeof CAMPAIGN_FORM_SCHEMA>;
-export type CampaignFormState = UseFormReturn<CampaignFormValues, unknown, CampaignForm>;
-export type CampaignFormLookupName = Exclude<keyof CampaignForm, "name" | "country">;
+export type CampaignFormState = UseFormReturn<
+  CampaignFormValues,
+  unknown,
+  CampaignForm
+>;
+export type CampaignFormLookupName = Exclude<
+  keyof CampaignForm,
+  "name" | "country"
+>;

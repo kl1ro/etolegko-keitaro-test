@@ -1,7 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,8 +15,16 @@ import CampaignLookupField from "@/components/campaign-creator/CampaignLookupFie
 import CampaignNameField from "@/components/campaign-creator/CampaignNameField";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { createCampaign, describeApiRejection, type Campaign, type CampaignForm } from "@/lib/api";
-import { CAMPAIGN_FORM_SCHEMA, type CampaignFormValues } from "@/lib/campaign-form";
+import {
+  createCampaign,
+  describeApiRejection,
+  type Campaign,
+  type CampaignForm,
+} from "@/lib/api";
+import {
+  CAMPAIGN_FORM_SCHEMA,
+  type CampaignFormValues,
+} from "@/lib/campaign-form";
 import {
   CAMPAIGN_GROUPS_QUERY,
   CAMPAIGNS_QUERY,
@@ -27,7 +39,9 @@ export default function CampaignCreator() {
   return (
     <form
       noValidate
-      onSubmit={state.form.handleSubmit((form) => tryCreateCampaign(form, state))}
+      onSubmit={state.form.handleSubmit((form) =>
+        tryCreateCampaign(form, state),
+      )}
       className="flex w-full max-w-xl flex-col gap-6"
     >
       <FieldGroup>
@@ -67,7 +81,11 @@ export default function CampaignCreator() {
         />
       </FieldGroup>
 
-      <Button type="submit" disabled={state.form.formState.isSubmitting} className="self-start">
+      <Button
+        type="submit"
+        disabled={state.form.formState.isSubmitting}
+        className="self-start"
+      >
         Создать кампанию
       </Button>
     </form>
@@ -90,14 +108,19 @@ function useCampaignCreatorState() {
   };
 }
 
-async function tryCreateCampaign(form: CampaignForm, deps: TryCreateCampaignDeps) {
+async function tryCreateCampaign(
+  form: CampaignForm,
+  deps: TryCreateCampaignDeps,
+) {
   try {
     const campaign = await createCampaign(form);
     await refreshCampaignList(deps);
     openCampaignEditor(campaign, deps);
   } catch (error) {
     console.error(error);
-    toast.error("Не удалось создать кампанию", { description: describeApiRejection(error) });
+    toast.error("Не удалось создать кампанию", {
+      description: describeApiRejection(error),
+    });
   }
 }
 
@@ -107,7 +130,9 @@ interface TryCreateCampaignDeps {
 }
 
 async function refreshCampaignList(deps: RefreshCampaignListDeps) {
-  await deps.queryClient.invalidateQueries({ queryKey: CAMPAIGNS_QUERY.queryKey });
+  await deps.queryClient.invalidateQueries({
+    queryKey: CAMPAIGNS_QUERY.queryKey,
+  });
 }
 
 interface RefreshCampaignListDeps {

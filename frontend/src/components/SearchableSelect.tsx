@@ -12,11 +12,17 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { SelectOption, SelectOptionValue } from "@/lib/select-options";
 import { cn } from "@/lib/utils";
 
-export default function SearchableSelect<Value extends SelectOptionValue>(props: SearchableSelectProps<Value>) {
+export default function SearchableSelect<Value extends SelectOptionValue>(
+  props: SearchableSelectProps<Value>,
+) {
   const state = useSearchableSelectState(props);
 
   return (
@@ -31,7 +37,12 @@ export default function SearchableSelect<Value extends SelectOptionValue>(props:
           disabled={props.disabled}
           className="w-full justify-between font-normal"
         >
-          <span className={cn("truncate", !state.selectedOption && "text-muted-foreground")}>
+          <span
+            className={cn(
+              "truncate",
+              !state.selectedOption && "text-muted-foreground",
+            )}
+          >
             {state.selectedOption?.label ?? props.placeholder}
           </span>
 
@@ -39,12 +50,17 @@ export default function SearchableSelect<Value extends SelectOptionValue>(props:
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="start" className="w-(--radix-popover-trigger-width) p-0">
+      <PopoverContent
+        align="start"
+        className="w-(--radix-popover-trigger-width) p-0"
+      >
         <Command>
           <CommandInput placeholder="Поиск…" />
 
           <CommandList>
-            <CommandEmpty>{props.emptyText ?? "Ничего не найдено"}</CommandEmpty>
+            <CommandEmpty>
+              {props.emptyText ?? "Ничего не найдено"}
+            </CommandEmpty>
 
             <CommandGroup>
               {props.options.map((option) => (
@@ -53,9 +69,16 @@ export default function SearchableSelect<Value extends SelectOptionValue>(props:
                   value={getOptionSearchText(option)}
                   onSelect={() => selectOption(option, state)}
                 >
-                  <CheckIcon className={cn("opacity-0", option === state.selectedOption && "opacity-100")} />
+                  <CheckIcon
+                    className={cn(
+                      "opacity-0",
+                      option === state.selectedOption && "opacity-100",
+                    )}
+                  />
                   <span className="truncate">{option.label}</span>
-                  <span className="ml-auto text-xs text-muted-foreground">{option.hint}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {option.hint}
+                  </span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -77,7 +100,9 @@ export interface SearchableSelectProps<Value extends SelectOptionValue> {
   onValueChange: (value: Value) => void;
 }
 
-function useSearchableSelectState<Value extends SelectOptionValue>(props: SearchableSelectProps<Value>) {
+function useSearchableSelectState<Value extends SelectOptionValue>(
+  props: SearchableSelectProps<Value>,
+) {
   return {
     open: useSearchableSelectOpen(),
     selectedOption: findSelectedOption(props.value, props),
@@ -89,7 +114,10 @@ function getOptionSearchText(option: SelectOption<SelectOptionValue>) {
   return `${option.label} ${option.hint}`;
 }
 
-function selectOption<Value extends SelectOptionValue>(option: SelectOption<Value>, deps: SelectOptionDeps<Value>) {
+function selectOption<Value extends SelectOptionValue>(
+  option: SelectOption<Value>,
+  deps: SelectOptionDeps<Value>,
+) {
   deps.onValueChange(option.value);
   deps.open.set(false);
 }
