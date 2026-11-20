@@ -38,6 +38,20 @@ A test assignment: a campaign creator and an offer editor on top of the Keitaro 
 
 `docker compose up` never runs migrations: the `migrate` service sits behind the `migrate` profile, so it starts only when named explicitly. On servers the CI migrate stage runs it before deploying; locally run it by hand after pulling new migrations.
 
+### Build the images locally
+
+The app services have both an image and a build context, and Compose pulls by default. To build from source instead:
+
+```sh
+docker compose up -d --build
+```
+
+Local builds get the same image names as the pulled ones, so plain `docker compose up` keeps using them. To get the CI images back:
+
+```sh
+docker compose up -d --pull always
+```
+
 ## Migrations
 
 Apply migrations:
