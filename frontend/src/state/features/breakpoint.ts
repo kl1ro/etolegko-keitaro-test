@@ -17,6 +17,9 @@ function getInitialBreakpoint(): Breakpoint {
   return "desktop";
 }
 
-function handleBreakpointSet(_state: Breakpoint, action: PayloadAction<Breakpoint>) {
+function handleBreakpointSet(
+  _state: Breakpoint,
+  action: PayloadAction<Breakpoint>,
+) {
   return action.payload;
 }
