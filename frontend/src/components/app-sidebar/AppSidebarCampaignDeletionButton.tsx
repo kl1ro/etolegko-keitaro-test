@@ -1,0 +1,90 @@
+"use client";
+
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type UseMutationResult,
+} from "@tanstack/react-query";
+import { Trash2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+import { SidebarMenuAction } from "@/components/ui/sidebar";
+import { deleteCampaign, describeApiRejection, type Campaign } from "@/lib/api";
+import { CAMPAIGNS_QUERY } from "@/lib/queries";
+
+export default function AppSidebarCampaignDeletionButton(
+  props: AppSidebarCampaignDeletionButtonProps,
+) {
+  const state = useAppSidebarCampaignDeletionButtonState(props);
+
+  return (
+    <SidebarMenuAction
+      showOnHover
+      className="cursor-pointer text-muted-foreground peer-hover/menu-button:text-muted-foreground peer-data-active/menu-button:text-muted-foreground"
+      aria-label="Удалить кампанию"
+      disabled={state.deletion.isPending}
+      onClick={() => tryDeleteCampaign(state)}
+    >
+      <Trash2Icon />
+    </SidebarMenuAction>
+  );
+}
+
+export interface AppSidebarCampaignDeletionButtonProps {
+  campaign: Campaign;
+  isOpen: boolean;
+}
+
+function useAppSidebarCampaignDeletionButtonState(
+  props: AppSidebarCampaignDeletionButtonProps,
+) {
+  return {
+    campaign: props.campaign,
+    isOpen: props.isOpen,
+    router: useRouter(),
+    queryClient: useQueryClient(),
+    deletion: useMutation({ mutationFn: deleteCampaign }),
+  };
+}
+
+async function tryDeleteCampaign(deps: TryDeleteCampaignDeps) {
+  const toastId = getCampaignDeletionToastId(deps.campaign);
+
+  try {
+    toast.loading("Удаление кампании…", { id: toastId });
+    await deps.deletion.mutateAsync(deps.campaign.id);
+    if (deps.isOpen) deps.router.push("/");
+    await refreshCampaigns(deps);
+    toast.success("Кампания удалена", { id: toastId });
+  } catch (error) {
+    console.error(error);
+    toast.error("Не удалось удалить кампанию", {
+      id: toastId,
+      description: describeApiRejection(error),
+    });
+  }
+}
+
+interface TryDeleteCampaignDeps {
+  campaign: Campaign;
+  isOpen: boolean;
+  router: ReturnType<typeof useRouter>;
+  queryClient: QueryClient;
+  deletion: UseMutationResult<undefined, Error, Campaign["id"]>;
+}
+
+function getCampaignDeletionToastId(campaign: Campaign) {
+  return `campaign-deletion-${campaign.id}`;
+}
+
+async function refreshCampaigns(deps: RefreshCampaignsDeps) {
+  await deps.queryClient.invalidateQueries({
+    queryKey: CAMPAIGNS_QUERY.queryKey,
+  });
+}
+
+interface RefreshCampaignsDeps {
+  queryClient: QueryClient;
+}

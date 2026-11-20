@@ -5,7 +5,7 @@ import secrets
 from typing import Annotated, TypedDict
 
 from fastapi import Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -52,7 +52,7 @@ async def create_campaign(form: CampaignForm, deps: CreateCampaignDeps) -> Campa
 
 class CampaignForm(BaseModel):
     name: str
-    country: str
+    countries: list[str] = Field(min_length=1)
     offer_id: int
     domain_id: int
     group_id: int
@@ -91,7 +91,7 @@ async def create_campaign_streams(
     campaign: Campaign,
     deps: CreateCampaignStreamsDeps,
 ) -> None:
-    country_stream = get_country_stream_draft(campaign, deps["form"].country)
+    country_stream = get_country_stream_draft(campaign, deps["form"].countries)
     offer_stream = get_offer_stream_draft(campaign, deps["form"].offer_id)
 
     await asyncio.gather(
@@ -121,16 +121,16 @@ def generate_campaign_alias() -> str:
 CAMPAIGN_ALIAS_BYTES = 4
 
 
-def get_country_stream_draft(campaign: Campaign, country: str) -> StreamDraft:
+def get_country_stream_draft(campaign: Campaign, countries: list[str]) -> StreamDraft:
     return StreamDraft(
         campaign_id=campaign.id,
         type="regular",
-        name=f"{country} to Google",
+        name=f"{', '.join(countries)} to Google",
         position=1,
         action_schema="redirect",
         action_type="http",
         action_payload=GOOGLE_URL,
-        filters=[StreamFilter(name="country", mode="accept", payload=[country])],
+        filters=[StreamFilter(name="country", mode="accept", payload=countries)],
     )
 
 
@@ -191,3 +191,55 @@ async def load_keitaro_campaigns(
 
 class LoadKeitaroCampaignsDeps(TypedDict):
     keitaro: Keitaro
+
+
+def get_campaign_deletion_deps(
+    keitaro: Annotated[Keitaro, Depends(get_keitaro)],
+    database: Annotated[AsyncSession, Depends(open_session)],
+) -> DeleteCampaignDeps:
+    return {"keitaro": keitaro, "database": database}
+
+
+async def delete_campaign(campaign_id: int, deps: DeleteCampaignDeps) -> None:
+    saved_campaign = await load_saved_campaign(campaign_id, deps)
+    await deps["keitaro"].delete_campaign(campaign_id)
+    await delete_saved_campaign(saved_campaign, deps)
+
+
+class DeleteCampaignDeps(TypedDict):
+    keitaro: Keitaro
+    database: AsyncSession
+
+
+async def load_saved_campaign(
+    campaign_id: int,
+    deps: LoadSavedCampaignDeps,
+) -> models.Campaign:
+    saved_campaign = await deps["database"].get(models.Campaign, campaign_id)
+
+    if not saved_campaign:
+        raise CampaignNotFoundError(campaign_id)
+
+    return saved_campaign
+
+
+class LoadSavedCampaignDeps(TypedDict):
+    database: AsyncSession
+
+
+class CampaignNotFoundError(Exception):
+    def __init__(self, campaign_id: int) -> None:
+        super().__init__(f"Campaign {campaign_id} is not one of the saved campaigns")
+        self.campaign_id = campaign_id
+
+
+async def delete_saved_campaign(
+    saved_campaign: models.Campaign,
+    deps: DeleteSavedCampaignDeps,
+) -> None:
+    await deps["database"].delete(saved_campaign)
+    await deps["database"].commit()
+
+
+class DeleteSavedCampaignDeps(TypedDict):
+    database: AsyncSession
