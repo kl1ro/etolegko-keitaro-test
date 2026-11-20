@@ -42,7 +42,10 @@ function AppSidebarMenu(props: AppSidebarMenuProps) {
       {APP_SIDEBAR_LINKS_FROM_SHALLOWEST.map((link) => (
         <SidebarMenuItem key={link.href}>
           <SidebarMenuButton asChild isActive={link === props.activeLink}>
-            <Link href={link.href} onClick={() => state.sidebar.setOpenMobile(false)}>
+            <Link
+              href={link.href}
+              onClick={() => state.sidebar.setOpenMobile(false)}
+            >
               <link.icon />
               <span>{link.label}</span>
             </Link>
@@ -74,8 +77,12 @@ function useActiveAppSidebarMenuState() {
   };
 }
 
-function findActiveAppSidebarLink(pathname: string): AppSidebarLink | undefined {
-  return APP_SIDEBAR_LINKS_FROM_SHALLOWEST.findLast((link) => isPathInsideLink(pathname, link));
+function findActiveAppSidebarLink(
+  pathname: string,
+): AppSidebarLink | undefined {
+  return APP_SIDEBAR_LINKS_FROM_SHALLOWEST.findLast((link) =>
+    isPathInsideLink(pathname, link),
+  );
 }
 
 function isPathInsideLink(pathname: string, link: AppSidebarLink) {
