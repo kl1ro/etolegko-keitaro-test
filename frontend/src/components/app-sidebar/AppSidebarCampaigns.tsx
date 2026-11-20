@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import { usePathname } from "next/navigation";
 
+import AppSidebarCampaignDeletionButton from "@/components/app-sidebar/AppSidebarCampaignDeletionButton";
 import AppSidebarLink from "@/components/app-sidebar/AppSidebarLink";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { SidebarMenu } from "@/components/ui/sidebar";
@@ -44,13 +45,11 @@ function CampaignList(props: CampaignListProps) {
   return (
     <SidebarMenu>
       {props.campaigns.map((campaign) => (
-        <AppSidebarLink
+        <CampaignLink
           key={campaign.id}
-          href={getCampaignHref(campaign)}
-          isActive={state.pathname === getCampaignHref(campaign)}
-        >
-          <span>{campaign.name}</span>
-        </AppSidebarLink>
+          campaign={campaign}
+          isOpen={state.pathname === getCampaignHref(campaign)}
+        />
       ))}
     </SidebarMenu>
   );
@@ -64,6 +63,23 @@ function useCampaignListState() {
   return {
     pathname: usePathname(),
   };
+}
+
+function CampaignLink(props: CampaignLinkProps) {
+  return (
+    <AppSidebarLink
+      href={getCampaignHref(props.campaign)}
+      isActive={props.isOpen}
+      action={<AppSidebarCampaignDeletionButton {...props} />}
+    >
+      <span>{props.campaign.name}</span>
+    </AppSidebarLink>
+  );
+}
+
+interface CampaignLinkProps {
+  campaign: Campaign;
+  isOpen: boolean;
 }
 
 function getCampaignHref(campaign: Campaign) {

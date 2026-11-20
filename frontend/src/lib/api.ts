@@ -17,6 +17,14 @@ export async function createCampaign(form: CampaignForm) {
   });
 }
 
+export async function deleteCampaign(campaignId: Campaign["id"]) {
+  return sendApiRequest({
+    method: "DELETE",
+    path: getCampaignPath(campaignId),
+    schema: z.undefined(),
+  });
+}
+
 export interface CampaignForm {
   name: string;
   country: string;
@@ -112,8 +120,12 @@ interface ApiRequest<Schema extends z.ZodType> {
   schema: Schema;
 }
 
+function getCampaignPath(campaignId: Campaign["id"]) {
+  return `/campaigns/${campaignId}`;
+}
+
 function getCampaignOffersPath(campaignId: Campaign["id"]) {
-  return `/campaigns/${campaignId}/offers`;
+  return `${getCampaignPath(campaignId)}/offers`;
 }
 
 function getCampaignOfferPath(
@@ -155,12 +167,20 @@ async function readApiResponseBody(
   request: ApiRequest<z.ZodType>,
   response: Response,
 ): Promise<unknown> {
+  if (!hasResponseBody(response)) return;
+
   try {
     return await response.json();
   } catch (error) {
     throw new ApiRequestFailedError({ request, cause: error });
   }
 }
+
+function hasResponseBody(response: Response) {
+  return response.status !== NO_CONTENT_STATUS;
+}
+
+const NO_CONTENT_STATUS = 204;
 
 function parseApiResponseBody<Schema extends z.ZodType>(
   body: unknown,
